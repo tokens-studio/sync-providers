@@ -1,0 +1,34 @@
+{
+  "colors": {
+    "red": {
+      "base": { "$value": "#ff00ff", "$type": "color" },
+      "modified": { "$value": "rgba({colors.red.base}, 0.5)", "$type": "color" },
+      "calculated": { "$value": "4 * 2", "$type": "number" },
+      "withpx": { "$value": "16px", "$type": "dimension" },
+      "withrem": { "$value": "1.5rem", "$type": "dimension" },
+      "referencerem": { "$value": "{colors.red.withrem} * 1.5", "$type": "dimension" },
+      "light": {
+        "$value": "{colors.red.base}",
+        "$type": "color",
+        "description": "This is a test description",
+        "$extensions": {
+          "studio.tokens": {
+            "modify": {
+              "type": "lighten",
+              "value": "0.5",
+              "space": "lch"
+            }
+          }
+        }
+      },
+      "dark": { "$value": "#330000", "$type": "color" },
+      "referenced": { "$value": "{colors.red.base}", "$type": "color" }
+    },
+    "blue": {
+      "base": { "$value": "#0040ff", "$type": "color" },
+      "light": { "$value": "{colors.blue.base}", "$type": "color" },
+      "dark": { "$value": "#000d33", "$type": "color" },
+      "referenced": { "$value": "{colors.red.dark}", "$type": "color" }
+    }
+  }
+}

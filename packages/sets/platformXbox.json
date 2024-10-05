@@ -1,0 +1,18 @@
+{
+  "semantic": {
+    "info": {
+      "background": {
+        "$value": "{colors.red.dark}",
+        "$type": "color"
+      },
+      "foreground": {
+        "$value": "{colors.red.light}",
+        "$type": "color"
+      },
+      "stroke": {
+        "$value": "{colors.red.base}",
+        "$type": "color"
+      }
+    }
+  }
+}

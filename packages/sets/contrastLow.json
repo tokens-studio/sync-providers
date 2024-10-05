@@ -1,0 +1,32 @@
+{
+  "colors": {
+    "red": {
+      "base": {
+        "$value": "#ff0000",
+        "$type": "color"
+      },
+      "light": {
+        "$value": "#ff3333",
+        "$type": "color"
+      },
+      "dark": {
+        "$value": "#cc00ff",
+        "$type": "color"
+      }
+    },
+    "blue": {
+      "base": {
+        "$value": "#0040ff",
+        "$type": "color"
+      },
+      "light": {
+        "$value": "#3366ff",
+        "$type": "color"
+      },
+      "dark": {
+        "$value": "#0033cc",
+        "$type": "color"
+      }
+    }
+  }
+}
