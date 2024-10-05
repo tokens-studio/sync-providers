@@ -12,15 +12,14 @@
     "generate:component": "turbo gen react-component"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
     "@turbo/gen": "^1.12.4",
     "@types/node": "^20.11.24",
-    "@types/eslint": "^8.56.5",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
-    "eslint": "^8.57.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "eslint": "^9.11.1",
+		"prettier": "^3.3.3",
+    "@tokens-studio/configs": "^0.2.1"
   },
   "dependencies": {
     "react": "^18.2.0"
