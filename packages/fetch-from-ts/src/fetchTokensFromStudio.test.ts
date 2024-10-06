@@ -1,5 +1,5 @@
 import { expect, test, describe } from "vitest";
-import { fetchTokensFromStudio } from "./fetchFromTs.js";
+import { fetchTokensFromStudio } from "./fetchTokensFromStudio.js";
 
 const urn =
   "urn:ts:tokens:eu-central-1:9NqwHFgsXTAMc2VXsimS7H:project/sDeXdrjEds6Y7w8gzUJsQ6";
@@ -13,5 +13,5 @@ describe("fetchFromTs", () => {
       expect(tokens).toBeDefined();
     },
     { timeout: 10000 },
-  ); // 10 second timeout because our API is slow.
+  ); // 10 second timeout because our API is slow and brittle.
 });
