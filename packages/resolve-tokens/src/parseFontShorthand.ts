@@ -29,20 +29,22 @@ export function parseFontShorthand(fontShorthand: string): FontProperties {
 
   // Font family (the rest)
   if (parts.length > 0) {
+    let fontFamily = "";
     // Check if the font family is enclosed in quotes
-    if (parts[0].startsWith("'") || parts[0].startsWith('"')) {
-      const quoteChar = parts[0][0];
-      let fontFamily = '';
-      while (parts.length > 0 && !parts[0].endsWith(quoteChar)) {
-        fontFamily += parts.shift() + ' ';
+    if (parts[0]?.startsWith("'") || parts[0]?.startsWith('"')) {
+      const quoteChar = parts[0]?.[0];
+      while (parts.length > 0 && !parts[0]?.endsWith(quoteChar)) {
+        fontFamily += parts.shift() + " ";
       }
       if (parts.length > 0) {
         fontFamily += parts.shift();
       }
-      result.fontFamily = fontFamily.slice(1, -1); // Remove quotes
+      fontFamily = fontFamily.slice(1, -1); // Remove quotes
     } else {
-      result.fontFamily = parts.join(' ');
+      fontFamily = parts.join(" ");
     }
+    // Take only the first part if separated by comma
+    result.fontFamily = fontFamily.split(",")[0].trim();
   }
 
   return result;

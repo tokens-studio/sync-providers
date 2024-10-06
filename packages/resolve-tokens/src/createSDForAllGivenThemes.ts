@@ -114,9 +114,9 @@ export async function createSDForAllGivenThemes(
             .to("srgb")
             .toString({ format: "hex" });
           // TODO: Disable for Framer or find a different way to specify how the output format should look like
-          const parsedColor = parseColor(transformedColor);
-          // token.value = transformedColor; TODO: For framer
-          token.value = parsedColor;
+          // const parsedColor = parseColor(transformedColor);
+          token.value = transformedColor;
+          // token.value = parsedColor;
         } else if (token.type === "typography") {
           const parsedFont = parseFontShorthand(token.value);
           token.value = parsedFont;

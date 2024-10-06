@@ -128,8 +128,6 @@ export async function fetchTokensFromStudio(urn: string) {
       {},
     );
 
-    console.log("tokenSetTrees", tokenSetTrees);
-
     const projectInfo = {
       name: data.data?.project?.name,
     };

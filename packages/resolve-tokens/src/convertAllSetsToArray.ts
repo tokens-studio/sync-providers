@@ -32,6 +32,7 @@ StyleDictionary.registerTransform({
 export async function convertSingleSetToArray(
   tokenTree: DesignTokens,
 ): Promise<SingleToken[]> {
+  const isUsingDTCG = JSON.stringify(tokenTree).includes("$value");
   // handle case of empty token sets
   if (Object.keys(tokenTree).length === 0) {
     console.log("returning empty array");
@@ -39,7 +40,7 @@ export async function convertSingleSetToArray(
   }
   const sd = new StyleDictionary({
     tokens: tokenTree,
-    usesDtcg: true,
+    usesDtcg: isUsingDTCG,
     log: {
       verbosity: "silent",
       errors: {
@@ -76,15 +77,19 @@ export async function convertSingleSetToArray(
         original,
         path,
         attributes: _attributes,
-        $value: _value,
-        $type: _type,
+        // $value: _value,
+        // $type: _type,
+        value: _value,
+        type: _type,
         ...rest
       } = token;
       return {
         ...rest,
         name: path.join("."),
-        value: original.$value,
-        type: original.$type,
+        // value: original.$value,
+        // type: original.$type,
+        value: original.value,
+        type: original.type,
       };
     },
   );
