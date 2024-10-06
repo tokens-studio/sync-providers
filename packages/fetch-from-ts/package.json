@@ -1,6 +1,7 @@
 {
   "name": "@repo/fetch-from-ts",
   "version": "0.0.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -13,6 +14,7 @@
     "@types/node": "^20.11.24",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
+    "@types/set-value": "^4.0.3",
     "eslint": "^9.11.1",
     "prettier": "^3.3.3",
     "set-value": "^4.1.0",

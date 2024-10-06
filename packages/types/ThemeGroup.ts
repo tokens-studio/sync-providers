@@ -1,7 +1,4 @@
-export interface ThemeOption {
-  name: string;
-  selectedTokenSets: Record<string, string>;
-}
+import type { ThemeOption } from "./ThemeOption";
 
 export interface ThemeGroup {
   id: string;

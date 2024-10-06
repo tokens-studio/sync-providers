@@ -1,18 +1,5 @@
-import { NewExperimentalThemeObject } from "../../types/NewExperimentalThemeObject";
-
-interface ThemeGroupOption {
-  urn: string;
-  name: string;
-  selectedTokenSets: string;
-  figmaStyleReferences: string;
-  figmaVariableReferences: string;
-}
-
-interface ThemeGroup {
-  urn: string;
-  name: string;
-  options: ThemeGroupOption[];
-}
+import type { NewExperimentalThemeObject } from "@repo/types/NewExperimentalThemeObject.js";
+import type { ThemeGroup } from "../types/ThemeGroup.js";
 
 export function formatThemeResponse(
   themeGroups: ThemeGroup[],
