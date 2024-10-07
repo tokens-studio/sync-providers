@@ -1,4 +1,4 @@
-import { convertToUnitDimensions } from "./createSDForAllGivenThemes.js";
+import { convertToUnitDimensions } from "./convertToUnitDimensions.js";
 
 interface FontProperties {
   fontWeight?: number;
@@ -13,14 +13,14 @@ export function parseFontShorthand(fontShorthand: string): FontProperties {
 
   // Font weight
   if (/^(\d{3})$/.test(parts[0])) {
-    const weightValue = parts.shift() || '';
+    const weightValue = parts.shift() || "";
     result.fontWeight = parseInt(weightValue, 10) || 400;
   }
 
   // Font size and line height
   const sizeAndLineHeight = parts.shift();
   if (sizeAndLineHeight) {
-    const [fontSize, lineHeight] = sizeAndLineHeight.split('/');
+    const [fontSize, lineHeight] = sizeAndLineHeight.split("/");
     result.fontSize = convertToUnitDimensions(fontSize);
     if (lineHeight) {
       result.lineHeight = convertToUnitDimensions(lineHeight);

@@ -1,6 +1,6 @@
 import { Graphql, ProjectQuery } from "@tokens-studio/sdk";
-import { fetchWithRetry } from "./fetchWithRetry.js";
-import { PROJECTS_QUERY } from "./PROJECTS_QUERY.js";
+import { fetchWithRetry } from "./utils/fetchWithRetry.js";
+import { PROJECTS_QUERY } from "./queries/PROJECTS_QUERY.js";
 
 export async function fetchProjectsFromStudio() {
   const data = await fetchWithRetry(() =>

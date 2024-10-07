@@ -77,6 +77,7 @@ export async function convertSingleSetToArray(
         original,
         path,
         attributes: _attributes,
+        // TODO: Properly adjust if dtcg or not
         // $value: _value,
         // $type: _type,
         value: _value,
@@ -85,11 +86,12 @@ export async function convertSingleSetToArray(
       } = token;
       return {
         ...rest,
-        name: path.join("."),
+        name: path?.join("."),
+        // TODO: Properly adjust if dtcg or not
         // value: original.$value,
         // type: original.$type,
-        value: original.value,
-        type: original.type,
+        value: original?.value,
+        type: original?.type,
       };
     },
   );

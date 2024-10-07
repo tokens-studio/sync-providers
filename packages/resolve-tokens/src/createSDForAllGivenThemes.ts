@@ -1,16 +1,17 @@
 import StyleDictionary from "style-dictionary";
 import { generateThemes } from "./generateThemes.js";
-import { NewExperimentalThemeObject } from "../../types/NewExperimentalThemeObject.js";
-import { DesignTokens, PreprocessedTokens } from "style-dictionary/types";
+import type { NewExperimentalThemeObject } from "../../types/NewExperimentalThemeObject.js";
+import type { DesignTokens, PreprocessedTokens } from "style-dictionary/types";
 import { convertArrayToNestedObject } from "./convertArrayToNestedObject.js";
 import { register } from "@tokens-studio/sd-transforms";
 import Color from "colorjs.io";
-import { UsedTokenSetsMap } from "@tokens-studio/types";
-import { parseFontShorthand } from "./parseFontShorthand";
-import { parseColor } from "./parseColor";
+import type { UsedTokenSetsMap } from "@tokens-studio/types";
+import { parseFontShorthand } from "./parseFontShorthand.js";
+
 register(StyleDictionary);
 
 // Register a new transform to convert units to pure numbers
+// Figma doesnt know units, just numbers. So we expect that they're 16px (but technically we should support a dynamic base font size via a token and resolving)
 StyleDictionary.registerTransform({
   name: "size/pxToNumber",
   type: "value",
@@ -33,6 +34,7 @@ StyleDictionary.registerTransform({
 });
 
 // Register a new transform to add isUsingPureReference property
+// We need this to understand if we can create an alias inside design tools (as Figma only supports pure reference links)
 StyleDictionary.registerTransform({
   name: "attribute/isPureReference",
   type: "attribute",
@@ -47,25 +49,6 @@ StyleDictionary.registerTransform({
     return {};
   },
 });
-
-export function convertToUnitDimensions(
-  value: string,
-): `${number}px` | `${number}rem` | `${number}em` {
-  if (typeof value === "string") {
-    if (value.endsWith("px")) {
-      return `${parseFloat(value)}px`;
-    } else if (value.endsWith("rem")) {
-      return `${parseFloat(value)}rem`;
-    } else if (value.endsWith("em")) {
-      return `${parseFloat(value)}em`;
-    } else {
-      return `${parseFloat(value)}px`;
-    }
-  } else if (typeof value === "number") {
-    return `${value}px`;
-  }
-  return value;
-}
 
 export async function createSDForAllGivenThemes(
   tokenSets: Record<string, DesignTokens>,
@@ -107,7 +90,12 @@ export async function createSDForAllGivenThemes(
       });
 
       const formattedTokens = await sd.formatPlatform("array");
-      const output = formattedTokens[0].output as PreprocessedTokens[];
+      if (!formattedTokens || !formattedTokens.length) return acc;
+      const output = formattedTokens[0]?.output as PreprocessedTokens[];
+
+      // We need to adjust the output value to what the platform expects.
+      // This doesnt seem to work yet with transformers, so we perform this additional step here.
+      // Ideally I wouldn't have this step and I could do it in the form of a transformer above.
       const transformedOutput = output.map((token) => {
         if (token.type === "color" && typeof token.value === "string") {
           const transformedColor = new Color(token.value)

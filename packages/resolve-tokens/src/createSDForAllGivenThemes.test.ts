@@ -1,8 +1,8 @@
 import { TokenSetStatus } from "@tokens-studio/types";
-import { DesignTokens } from "style-dictionary/types";
+import type { DesignTokens } from "style-dictionary/types";
+import type { NewExperimentalThemeObject } from "../../types/NewExperimentalThemeObject.js";
 import { expect, describe, it } from "vitest";
-import { createSDForAllGivenThemes } from "./createSDForAllGivenThemes";
-import { NewExperimentalThemeObject } from "../../types/NewExperimentalThemeObject";
+import { createSDForAllGivenThemes } from "./createSDForAllGivenThemes.js";
 
 const tokenSets: Record<string, DesignTokens> = {
   highContrast: {
