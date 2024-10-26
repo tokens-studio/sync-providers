@@ -1,0 +1,8 @@
+{
+  'foo': {
+    'background': '#ff0000'
+  },
+  'bar': {
+    'background': '#000000'
+  }
+}

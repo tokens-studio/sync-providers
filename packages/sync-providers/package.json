@@ -1,0 +1,31 @@
+{
+  "name": "@repo/sync-providers",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "devDependencies": {
+    "@tokens-studio/configs": "^0.2.1",
+    "@turbo/gen": "^1.12.4",
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "@types/set-value": "^4.0.3",
+    "dotenv": "^16.4.5",
+    "eslint": "^9.11.1",
+    "prettier": "^3.3.3",
+    "set-value": "^4.1.0",
+    "typescript": "^5.3.3",
+    "vitest": "^2.1.2"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.0.2",
+    "@tokens-studio/sdk": "^1.2.2",
+    "just-compact": "^3.2.0",
+    "octokit-commit-multiple-files": "^5.0.2"
+  }
+}
