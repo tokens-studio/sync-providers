@@ -8,7 +8,7 @@ export function convertSingleFileToMultiFile(
   const result = Object.entries(parsed).map(([key, value]) => ({
     name: key,
     path: `${path.replace(/\.json$/, "")}/${key}.json`,
-    data: value,
+    data: JSON.stringify(value),
   }));
 
   return result;

@@ -1,14 +1,12 @@
 import { Octokit } from "@octokit/rest";
 import OctokitCommitMultipleFiles from "octokit-commit-multiple-files";
 import { GitStorage } from "./GitStorage.js";
-import { joinPath } from "./utils/joinPath.js";
 import { getTreeMode } from "./utils/getTreeMode.js";
 import { commitMultipleFiles } from "./utils/commitMultipleFiles.js";
 import type { ExtendedOctokitClient } from "./types/ExtendedOctokitClient.js";
 import { octokitClientDefaultHeaders } from "./constants/octokitClientDefaultHeaders.js";
 import compact from "just-compact";
-import { normalizedPath, normalizePath } from "./utils/normalizePath.js";
-import IsJSONString from "./utils/isJSONString.js";
+import { normalizePath } from "./utils/normalizePath.js";
 import { convertSingleFileToMultiFile } from "./utils/convertSingleFileToMultiFile.js";
 
 export class GitHubStorage extends GitStorage {
@@ -93,30 +91,22 @@ export class GitHubStorage extends GitStorage {
   }
 
   private async getFilesToDelete(
+    contentsOfDirectory: { path: string; sha: string; type: string }[],
     changeset: Record<string, string>,
   ): Promise<string[]> {
-    const response = await this.octokitClient.rest.repos.getContent({
-      owner: this.owner,
-      repo: this.repository,
-      path: this.path,
-      ref: this.branch,
-    });
-
-    console.log("response", response);
-
-    if (Array.isArray(response.data)) {
+    if (Array.isArray(contentsOfDirectory)) {
       const directoryTreeResponse =
         await this.octokitClient.rest.git.createTree({
           owner: this.owner,
           repo: this.repository,
-          tree: response.data.map((item) => ({
+          tree: contentsOfDirectory.map((item) => ({
             path: item.path,
             sha: item.sha,
             mode: getTreeMode(item.type),
           })),
         });
 
-      if (directoryTreeResponse.data.tree[0].sha) {
+      if (directoryTreeResponse?.data?.tree[0]?.sha) {
         const treeResponse = await this.octokitClient.rest.git.getTree({
           owner: this.owner,
           repo: this.repository,
@@ -131,19 +121,14 @@ export class GitHubStorage extends GitStorage {
               a.path && b.path ? a.path.localeCompare(b.path) : 0,
             );
 
-          return jsonFiles
-            .filter(
-              (jsonFile) =>
-                !Object.keys(changeset).some(
-                  (item) =>
-                    jsonFile.path &&
-                    item === joinPath(this.path, jsonFile?.path),
-                ),
-            )
-            .map(
-              (fileToDelete) =>
-                `${this.path.split("/")[0]}/${fileToDelete.path}` ?? "",
-            );
+          return jsonFiles.reduce((acc, jsonFile) => {
+            // getTree returns the path relative to the root of the tree (as in one level up)
+            const fullPath = `${this.path.split("/")[0]}/${jsonFile.path}`;
+            if (jsonFile.path && !Object.keys(changeset).includes(fullPath)) {
+              acc.push(fullPath);
+            }
+            return acc;
+          }, [] as string[]);
         }
       }
     }
@@ -174,7 +159,12 @@ export class GitHubStorage extends GitStorage {
 
       // There's some existing files in the branch and this directory
       if (Array.isArray(existingContentsOfDirectory.data)) {
-        filesToDelete = await this.getFilesToDelete(changeset.files);
+        console.log("existingContentsOfDirectory", existingContentsOfDirectory);
+        filesToDelete = await this.getFilesToDelete(
+          existingContentsOfDirectory.data,
+          changeset.files,
+        );
+        console.log("filesToDelete", filesToDelete);
       }
     } catch (e) {
       console.error(
@@ -200,7 +190,7 @@ export class GitHubStorage extends GitStorage {
     return !!response;
   }
 
-  public async getTreeShaForDirectory(path: string) {
+  private async getTreeShaForDirectory(path: string) {
     // @README this is necessary because to figure out the tree SHA we need to fetch the parent directory contents
     // however when pulling from the root directory we can  not do this, but we can take the SHA from the branch
     if (path === "") {
@@ -240,7 +230,7 @@ export class GitHubStorage extends GitStorage {
     throw new Error("Could not find directory SHA");
   }
 
-  public async read() {
+  public async read(): Promise<{ path: string; name: string; data: string }[]> {
     try {
       const normalizedPath = normalizePath(this.path);
 
@@ -295,36 +285,37 @@ export class GitHubStorage extends GitStorage {
 
           // Combine file contents with file paths
           return compact(
-            jsonFileContents.map<{ data: string } | null>(
-              (fileContent, index) => {
-                const { path } = jsonFiles[index];
-                if (
-                  path &&
-                  fileContent?.data &&
-                  !Array.isArray(fileContent?.data)
-                ) {
-                  const filePath = path.startsWith(normalizedPath)
-                    ? path
-                    : `${normalizedPath}/${path}`;
-                  let name = filePath
-                    .substring(this.path.length)
-                    .replace(/^\/+/, "");
-                  name = name.replace(".json", "");
+            jsonFileContents.map<{
+              data: string;
+              path: string;
+              name: string;
+            } | null>((fileContent, index) => {
+              const { path } = jsonFiles[index];
+              if (
+                path &&
+                fileContent?.data &&
+                !Array.isArray(fileContent?.data)
+              ) {
+                const filePath = path.startsWith(normalizedPath)
+                  ? path
+                  : `${normalizedPath}/${path}`;
+                let name = filePath
+                  .substring(this.path.length)
+                  .replace(/^\/+/, "");
+                name = name.replace(".json", "");
 
-                  try {
-                    const parsedContent = JSON.parse(fileContent.data);
-                    return {
-                      path: filePath,
-                      name,
-                      data: parsedContent,
-                    };
-                  } catch (e) {
-                    throw new Error(`Error parsing JSON for ${filePath}`);
-                  }
+                try {
+                  return {
+                    path: filePath,
+                    name,
+                    data: fileContent.data,
+                  };
+                } catch (e) {
+                  throw new Error(`Error parsing JSON for ${filePath}`);
                 }
-                return null;
-              },
-            ),
+              }
+              return null;
+            }),
           );
         }
       } else if (response.data) {
@@ -334,9 +325,7 @@ export class GitHubStorage extends GitStorage {
           const parsed = JSON.parse(data);
           return convertSingleFileToMultiFile(this.path, parsed);
         } catch (e) {
-          return {
-            errorMessage: e,
-          };
+          throw new Error(`Error parsing JSON for ${this.path}, ${e}`);
         }
       }
 

@@ -6,8 +6,6 @@ dotenv.config();
 
 describe.skip("without mocks", () => {
   test("GitHubStorage.canWrite returns true if user has write permissions without mocks", async () => {
-    console.log("GITHUB_TEST_TOKEN", process.env.GITHUB_TEST_TOKEN);
-
     const storage = new GitHubStorage(
       process.env.GITHUB_TEST_TOKEN || "",
       process.env.GITHUB_TEST_OWNER || "",
@@ -18,10 +16,10 @@ describe.skip("without mocks", () => {
 
     const canWrite = await storage.canWrite();
     expect(canWrite).toBe(true);
-    // const branchCreated = await storage.createBranch("new-branch");
-    // expect(branchCreated).toBe(false); branch exists already
     const changeset = {
-      files: { "src/tokens/test.json": JSON.stringify({ test: "test3" }) },
+      files: {
+        "src/tokens/foo/bar/tokens.json": JSON.stringify({ test: "test3" }),
+      },
       commitMessage: "Test commit",
       branch: "new-branch-2",
     };

@@ -1,39 +1,30 @@
-import { afterEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { StorageProviderType, SyncProvider } from "./SyncProvider.js";
-import { Octokit } from "@octokit/rest";
 
-vi.mock("@octokit/rest");
-vi.mock("./utils/commitMultipleFiles.js");
+const mockRead = vi.fn().mockResolvedValue([]);
+const mockWriteChangeset = vi.fn().mockResolvedValue(true);
 
-afterEach(() => {
-  vi.resetAllMocks();
+vi.mock("./GitHubStorage.js", () => ({
+  GitHubStorage: vi.fn().mockImplementation(() => ({
+    writeChangeset: mockWriteChangeset,
+    read: mockRead,
+  })),
+}));
+
+beforeEach(() => {
+  mockWriteChangeset.mockClear();
+  mockRead.mockClear();
 });
 
-test("SyncProvider.push calls storage.writeChangeset", async () => {
-  const mockCreateOrUpdateFiles = vi.fn().mockResolvedValue({});
-
-  const mockOctokitPlugin = vi.fn().mockReturnValue({
-    repos: {
-      createOrUpdateFiles: mockCreateOrUpdateFiles,
-    },
-    paginate: vi.fn().mockImplementation(async (method, params) => {
-      return method(params);
-    }),
-  });
-
-  vi.spyOn(Octokit, "plugin").mockReturnValue(mockOctokitPlugin);
-
+test("SyncProvider.push calls storage.writeChangeset of github storage", async () => {
   const storageProvider = new SyncProvider(
     StorageProviderType.GITHUB,
-    "ghp_Os20DFno0LrMV3bAT72tJn4pL7ddMw2lLxxx",
+    "secret",
     "six7",
     "localtestrepo",
     "main",
     "tokens",
   );
-
-  const mockWriteChangeset = vi.fn().mockResolvedValue(true);
-  storageProvider.storage.writeChangeset = mockWriteChangeset;
 
   const files = { "test.json": "content" };
   const commitMessage = "Test commit";
@@ -49,10 +40,6 @@ test("SyncProvider.push calls storage.writeChangeset", async () => {
 });
 
 test("SyncProvider.pull calls storage.read", async () => {
-  const mockOctokitPlugin = vi.fn().mockReturnValue({});
-
-  vi.spyOn(Octokit, "plugin").mockReturnValue(mockOctokitPlugin);
-
   const storageProvider = new SyncProvider(
     StorageProviderType.GITHUB,
     "secret",
@@ -62,10 +49,7 @@ test("SyncProvider.pull calls storage.read", async () => {
     "tokens",
   );
 
-  const mockRead = vi.fn().mockResolvedValue([]);
-  storageProvider.storage.read = mockRead;
-
   await storageProvider.pull();
 
-  expect(mockRead).toBeCalled();
+  expect(mockRead).toHaveBeenCalled();
 });

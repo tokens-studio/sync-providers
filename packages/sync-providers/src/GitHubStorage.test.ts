@@ -1,34 +1,30 @@
-import { describe, expect, test, vi, afterEach } from "vitest";
+import { expect, test, vi, beforeEach, afterEach } from "vitest";
 import { Octokit } from "@octokit/rest";
 import { GitHubStorage } from "./GitHubStorage.js";
 import { commitMultipleFiles } from "./utils/commitMultipleFiles.js";
+import {
+  createMockOctokit,
+  resetMocks,
+  setupCommonMocks,
+} from "./GitHubStorage.mocks.js";
 
 vi.mock("@octokit/rest");
 vi.mock("./utils/commitMultipleFiles.js");
 
-afterEach(() => {
-  vi.resetAllMocks();
+beforeEach(() => {
+  resetMocks();
+  setupCommonMocks({});
 });
+
+afterEach(() => {
+  resetMocks();
+});
+
 test("GitHubStorage.canWrite returns true if user has write permissions", async () => {
-  const mockGetAuthenticated = vi.fn().mockResolvedValue({
-    data: { login: "testuser" },
+  setupCommonMocks({
+    currentUser: "testuser",
+    collaboratorPermission: "write",
   });
-
-  const mockGetCollaboratorPermissionLevel = vi.fn().mockResolvedValue({
-    data: { permission: "write" },
-  });
-
-  const mockOctokitPlugin = vi.fn().mockReturnValue({
-    rest: {
-      users: { getAuthenticated: mockGetAuthenticated },
-      repos: {
-        getCollaboratorPermissionLevel: mockGetCollaboratorPermissionLevel,
-      },
-    },
-    paginate: vi.fn().mockResolvedValue([]), // Mock paginate method
-  });
-
-  vi.spyOn(Octokit, "plugin").mockReturnValue(mockOctokitPlugin);
 
   const storage = new GitHubStorage(
     "secret",
@@ -43,20 +39,16 @@ test("GitHubStorage.canWrite returns true if user has write permissions", async 
 });
 
 test("GitHubStorage.createBranch creates a new branch", async () => {
-  const mockGetRef = vi.fn().mockResolvedValue({
-    data: { object: { sha: "123456" } },
+  createMockOctokit({
+    git: {
+      getRef: vi
+        .fn()
+        .mockResolvedValue({ data: { object: { sha: "123456" } } }),
+      createRef: vi
+        .fn()
+        .mockResolvedValue({ data: { ref: "refs/heads/new-branch" } }),
+    },
   });
-
-  const mockCreateRef = vi.fn().mockResolvedValue({
-    data: { ref: "refs/heads/new-branch" },
-  });
-
-  const mockOctokitPlugin = vi.fn().mockReturnValue({
-    git: { getRef: mockGetRef, createRef: mockCreateRef },
-    paginate: vi.fn().mockResolvedValue([]), // Mock paginate method
-  });
-
-  vi.spyOn(Octokit, "plugin").mockReturnValue(mockOctokitPlugin);
 
   const storage = new GitHubStorage(
     "secret",
@@ -71,25 +63,21 @@ test("GitHubStorage.createBranch creates a new branch", async () => {
 });
 
 test("GitHubStorage.writeChangeset creates a new branch when it doesn't exist", async () => {
-  const mockListBranches = vi.fn().mockResolvedValue([{ name: "main" }]);
   const mockCreateOrUpdateFiles = vi.fn().mockResolvedValue({});
-  const mockGetContent = vi.fn().mockResolvedValue({});
   commitMultipleFiles.mockReturnValue(mockCreateOrUpdateFiles);
 
-  const mockOctokitPlugin = vi.fn().mockReturnValue({
+  createMockOctokit({
     repos: {
-      listBranches: mockListBranches,
+      listBranches: vi.fn().mockResolvedValue([{ name: "main" }]),
     },
     rest: {
       repos: {
         createOrUpdateFiles: mockCreateOrUpdateFiles,
-        getContent: mockGetContent,
+        getContent: vi.fn().mockResolvedValue({}),
       },
     },
     paginate: vi.fn().mockResolvedValue([]),
   });
-
-  vi.spyOn(Octokit, "plugin").mockReturnValue(mockOctokitPlugin);
 
   const storage = new GitHubStorage(
     "secret",
@@ -124,36 +112,44 @@ test("GitHubStorage.writeChangeset creates a new branch when it doesn't exist", 
 });
 
 test("GitHubStorage.writeChangeset calls createOrUpdate with files to delete", async () => {
-  const mockGetFilesToDelete = vi
-    .spyOn(GitHubStorage.prototype, "getFilesToDelete")
-    .mockResolvedValue(["src/tokens/file1.json", "src/tokens/file2.json"]);
-
   const mockCreateOrUpdateFiles = vi.fn().mockResolvedValue({});
   commitMultipleFiles.mockReturnValue(mockCreateOrUpdateFiles);
 
-  const mockListBranches = vi.fn().mockResolvedValue([{ name: "main" }]);
-
-  const mockGetContent = vi.fn().mockResolvedValue({
-    data: [
-      { path: "file1.json", sha: "sha1", type: "blob" },
-      { path: "file2.json", sha: "sha2", type: "blob" },
-    ],
-  });
-
-  const mockOctokitPlugin = vi.fn().mockReturnValue({
+  createMockOctokit({
     repos: {
-      listBranches: mockListBranches,
+      listBranches: vi.fn().mockResolvedValue([{ name: "main" }]),
     },
     rest: {
+      git: {
+        getTree: vi.fn().mockResolvedValue({
+          data: {
+            tree: [
+              { path: "tokens/file1.json", sha: "sha1", type: "blob" },
+              { path: "tokens/file2.json", sha: "sha2", type: "blob" },
+            ],
+          },
+        }),
+        createTree: vi.fn().mockResolvedValue({
+          data: {
+            tree: [
+              { path: "tokens/file1.json", sha: "sha1", type: "blob" },
+              { path: "tokens/file2.json", sha: "sha2", type: "blob" },
+            ],
+          },
+        }),
+      },
       repos: {
-        getContent: mockGetContent,
+        getContent: vi.fn().mockResolvedValue({
+          data: [
+            { path: "src/tokens/file1.json", sha: "sha1", type: "blob" },
+            { path: "src/tokens/file2.json", sha: "sha2", type: "blob" },
+          ],
+        }),
         createOrUpdateFiles: mockCreateOrUpdateFiles,
       },
     },
-    paginate: vi.fn().mockResolvedValue([{ name: "main" }]), // Mock paginate method
+    paginate: vi.fn().mockResolvedValue([{ name: "main" }]),
   });
-
-  vi.spyOn(Octokit, "plugin").mockReturnValue(mockOctokitPlugin);
 
   const storage = new GitHubStorage(
     "secret",
@@ -164,14 +160,13 @@ test("GitHubStorage.writeChangeset calls createOrUpdate with files to delete", a
   );
 
   const changeset = {
-    files: { "test.json": "content" },
+    files: { "src/tokens/file1.json": "content" },
     commitMessage: "Test commit",
     branch: "main",
   };
 
   const result = await storage.writeChangeset(changeset);
   expect(result).toBe(true);
-  expect(mockGetFilesToDelete).toHaveBeenCalled();
   expect(mockCreateOrUpdateFiles).toHaveBeenCalledWith({
     branch: "main",
     owner: "owner",
@@ -180,8 +175,8 @@ test("GitHubStorage.writeChangeset calls createOrUpdate with files to delete", a
     changes: [
       {
         message: "Test commit",
-        files: { "test.json": "content" },
-        filesToDelete: ["src/tokens/file1.json", "src/tokens/file2.json"],
+        files: { "src/tokens/file1.json": "content" },
+        filesToDelete: ["src/tokens/file2.json"],
         ignoreDeletionFailures: true,
       },
     ],
@@ -189,33 +184,28 @@ test("GitHubStorage.writeChangeset calls createOrUpdate with files to delete", a
 });
 
 test("GitHubStorage.writeChangeset calls createOrUpdate without files to delete", async () => {
-  const mockGetFilesToDelete = vi
-    .spyOn(GitHubStorage.prototype, "getFilesToDelete")
-    .mockResolvedValue([]);
-
   const mockCreateOrUpdateFiles = vi.fn().mockResolvedValue({});
   commitMultipleFiles.mockReturnValue(mockCreateOrUpdateFiles);
 
-  const mockListBranches = vi.fn().mockResolvedValue([{ name: "main" }]);
-
-  const mockGetContent = vi.fn().mockResolvedValue({
-    data: [],
-  });
-
-  const mockOctokitPlugin = vi.fn().mockReturnValue({
+  createMockOctokit({
     repos: {
-      listBranches: mockListBranches,
+      listBranches: vi.fn().mockResolvedValue([{ name: "main" }]),
     },
     rest: {
       repos: {
-        getContent: mockGetContent,
+        getContent: vi.fn().mockResolvedValue({ data: [] }),
         createOrUpdateFiles: mockCreateOrUpdateFiles,
       },
     },
-    paginate: vi.fn().mockResolvedValue([{ name: "main" }]), // Mock paginate method
+    git: {
+      getTree: vi.fn().mockResolvedValue({
+        data: {
+          tree: [],
+        },
+      }),
+    },
+    paginate: vi.fn().mockResolvedValue([{ name: "main" }]),
   });
-
-  vi.spyOn(Octokit, "plugin").mockReturnValue(mockOctokitPlugin);
 
   const storage = new GitHubStorage(
     "secret",
@@ -233,7 +223,6 @@ test("GitHubStorage.writeChangeset calls createOrUpdate without files to delete"
 
   const result = await storage.writeChangeset(changeset);
   expect(result).toBe(true);
-  expect(mockGetFilesToDelete).toHaveBeenCalled();
   expect(mockCreateOrUpdateFiles).toHaveBeenCalledWith({
     branch: "main",
     owner: "owner",
@@ -251,59 +240,43 @@ test("GitHubStorage.writeChangeset calls createOrUpdate without files to delete"
 });
 
 test("GitHubStorage.read reads file directories", async () => {
-  const mockListBranches = vi.fn().mockResolvedValue([{ name: "main" }]);
-
-  const mockGetContent = vi
-    .fn()
-    .mockResolvedValueOnce({
-      data: [
-        {
-          path: "src/tokens/file1.json",
-          sha: "sha(src/tokens/file1.json)",
-          type: "blob",
-        },
-      ],
-    })
-    .mockResolvedValueOnce({
-      data: [
-        {
-          path: "src/tokens",
-          sha: "sha(src/tokens/file1.json)",
-          type: "directory",
-        },
-      ],
-    })
-    .mockResolvedValueOnce({
-      data: '{ "foo": "bar" }\n',
-    });
-
-  const mockGetTree = vi.fn().mockResolvedValue({
-    data: {
-      tree: [
-        {
-          path: "src/tokens/file1.json",
-          type: "blob",
-        },
-      ],
-    },
-  });
-
-  const mockOctokitPlugin = vi.fn().mockReturnValue({
-    repos: {
-      listBranches: mockListBranches,
-    },
+  createMockOctokit({
     rest: {
       repos: {
-        getContent: mockGetContent,
+        getContent: vi
+          .fn()
+          .mockResolvedValueOnce({
+            data: [
+              {
+                path: "src/tokens/file1.json",
+                sha: "sha(src/tokens/file1.json)",
+                type: "blob",
+              },
+            ],
+          })
+          .mockResolvedValueOnce({
+            data: [
+              {
+                path: "src/tokens",
+                sha: "sha(src/tokens/file1.json)",
+                type: "directory",
+              },
+            ],
+          })
+          .mockResolvedValueOnce({
+            data: '{ "foo": "bar" }\n',
+          }),
       },
       git: {
-        getTree: mockGetTree,
+        getTree: vi.fn().mockResolvedValue({
+          data: {
+            tree: [{ path: "src/tokens/file1.json", type: "blob" }],
+          },
+        }),
       },
     },
-    paginate: vi.fn().mockResolvedValue([]),
   });
 
-  vi.spyOn(Octokit, "plugin").mockReturnValue(mockOctokitPlugin);
   const storage = new GitHubStorage(
     "secret",
     "owner",
@@ -313,11 +286,11 @@ test("GitHubStorage.read reads file directories", async () => {
   );
 
   const result = await storage.read();
-  expect(result).toStrictEqual([
+  expect(result).toEqual([
     {
       path: "src/tokens/file1.json",
       name: "file1",
-      data: { foo: "bar" },
+      data: '{ "foo": "bar" }\n',
     },
   ]);
 });

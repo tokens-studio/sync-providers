@@ -7,6 +7,7 @@ import { register } from "@tokens-studio/sd-transforms";
 import Color from "colorjs.io";
 import type { UsedTokenSetsMap } from "@tokens-studio/types";
 import { parseFontShorthand } from "./parseFontShorthand.js";
+import { parseColor } from "./parseColor.js";
 
 register(StyleDictionary);
 
@@ -102,9 +103,9 @@ export async function createSDForAllGivenThemes(
             .to("srgb")
             .toString({ format: "hex" });
           // TODO: Disable for Framer or find a different way to specify how the output format should look like
-          // const parsedColor = parseColor(transformedColor);
-          token.value = transformedColor;
-          // token.value = parsedColor;
+          const parsedColor = parseColor(transformedColor);
+          // token.value = transformedColor;
+          token.value = parsedColor;
         } else if (token.type === "typography") {
           const parsedFont = parseFontShorthand(token.value);
           token.value = parsedFont;

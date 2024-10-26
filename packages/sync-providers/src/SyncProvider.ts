@@ -12,36 +12,37 @@ export enum StorageProviderType {
   TOKENS_STUDIO = "tokensstudio",
 }
 
+export interface StorageInterface {
+  canWrite(): Promise<boolean>;
+  writeChangeset(params: {
+    files: Record<string, string>;
+    commitMessage: string;
+    branch: string;
+  }): Promise<boolean>;
+  fetchBranches(): Promise<string[]>;
+  createBranch(branch: string): Promise<boolean>;
+  read(): Promise<{ path: string; name: string; data: unknown }[]>;
+}
+
 export class SyncProvider {
-  provider: StorageProviderType;
-  secret: string;
-  owner: string;
-  repository: string;
-  branch: string;
-  path: string;
-  baseUrl?: string;
-  storage: GitHubStorage;
+  public storage: StorageInterface;
 
   constructor(
-    provider: StorageProviderType,
-    secret: string,
-    owner: string,
-    repository: string,
-    branch: string,
-    path: string,
-    baseUrl?: string,
+    public provider: StorageProviderType,
+    public secret: string,
+    public owner: string,
+    public repository: string,
+    public branch: string,
+    public path: string,
+    public baseUrl?: string,
   ) {
-    this.secret = secret;
-    this.provider = provider;
-    this.owner = owner;
-    this.repository = repository;
-    this.branch = branch;
-    this.path = path;
-    this.baseUrl = baseUrl;
+    this.storage = this.createStorage();
+  }
 
-    switch (provider) {
+  private createStorage(): StorageInterface {
+    switch (this.provider) {
       case StorageProviderType.GITHUB:
-        this.storage = new GitHubStorage(
+        return new GitHubStorage(
           this.secret,
           this.owner,
           this.repository,
@@ -49,70 +50,19 @@ export class SyncProvider {
           this.path,
           this.baseUrl,
         );
-        break;
+      // Add cases for other providers here
       default:
         throw new Error(`Unsupported provider: ${this.provider}`);
     }
   }
 
-  public async canWrite() {
-    const { provider } = this;
-    switch (provider) {
-      case StorageProviderType.GITHUB: {
-        const storage = this.storage as GitHubStorage;
-        return storage.canWrite();
-      }
-      default: {
-        throw new Error(`Unsupported provider: ${this.provider}`);
-      }
-    }
-  }
-
-  public async push(
+  public canWrite = () => this.storage.canWrite();
+  public push = (
     files: Record<string, string>,
     commitMessage: string,
     branch: string,
-  ) {
-    const { provider } = this;
-    switch (provider) {
-      case StorageProviderType.GITHUB: {
-        const storage = this.storage as GitHubStorage;
-        storage.writeChangeset({
-          files,
-          commitMessage,
-          branch,
-        });
-        break;
-      }
-      default: {
-        throw new Error(`Unsupported provider: ${this.provider}`);
-      }
-    }
-  }
-
-  public async createBranch(branch: string) {
-    const { provider } = this;
-    switch (provider) {
-      case StorageProviderType.GITHUB: {
-        const storage = this.storage as GitHubStorage;
-        return storage.createBranch(branch);
-      }
-      default: {
-        throw new Error(`Unsupported provider: ${this.provider}`);
-      }
-    }
-  }
-
-  public async pull() {
-    const { provider } = this;
-    switch (provider) {
-      case StorageProviderType.GITHUB: {
-        const storage = this.storage as GitHubStorage;
-        return storage.read();
-      }
-      default: {
-        throw new Error(`Unsupported provider: ${this.provider}`);
-      }
-    }
-  }
+  ) => this.storage.writeChangeset({ files, commitMessage, branch });
+  public fetchBranches = () => this.storage.fetchBranches();
+  public createBranch = (branch: string) => this.storage.createBranch(branch);
+  public pull = () => this.storage.read();
 }

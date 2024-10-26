@@ -1,4 +1,5 @@
 import { joinPath } from "./utils/joinPath.js";
+import type { StorageInterface } from "./SyncProvider.js";
 
 export type GitStorageSaveOptions = {
   commitMessage?: string;
@@ -8,7 +9,7 @@ export type GitStorageSaveOption = {
   commitMessage: string;
 };
 
-export abstract class GitStorage {
+export abstract class GitStorage implements StorageInterface {
   protected secret: string;
 
   protected owner: string;
@@ -39,16 +40,6 @@ export abstract class GitStorage {
     this.path = path;
     this.baseUrl = baseUrl;
     this.username = username;
-  }
-
-  public selectBranch(branch: string) {
-    this.branch = branch;
-    return this;
-  }
-
-  public changePath(path: string) {
-    this.path = joinPath(path);
-    return this;
   }
 
   public abstract fetchBranches(): Promise<string[]>;
