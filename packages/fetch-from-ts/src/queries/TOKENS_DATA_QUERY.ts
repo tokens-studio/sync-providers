@@ -4,6 +4,10 @@ export const TOKENS_DATA_QUERY = `
 query Project($urn: String!) {
   project(urn: $urn) {
       name
+      organization {
+        urn
+        name
+      }
       sets {
       urn
       name
