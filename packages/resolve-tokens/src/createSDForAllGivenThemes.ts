@@ -56,6 +56,7 @@ export async function createSDForAllGivenThemes(
   themes: NewExperimentalThemeObject[],
   overallConfig?: UsedTokenSetsMap,
 ): Promise<Record<string, PreprocessedTokens[]>> {
+  console.log("themes", themes, tokenSets);
   const mergedTokensForAllThemes = await generateThemes(
     tokenSets,
     themes,
@@ -93,6 +94,8 @@ export async function createSDForAllGivenThemes(
       const formattedTokens = await sd.formatPlatform("array");
       if (!formattedTokens || !formattedTokens.length) return acc;
       const output = formattedTokens[0]?.output as PreprocessedTokens[];
+
+      console.log("output", output);
 
       // We need to adjust the output value to what the platform expects.
       // This doesnt seem to work yet with transformers, so we perform this additional step here.
