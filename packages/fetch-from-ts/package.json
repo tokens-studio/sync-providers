@@ -1,5 +1,5 @@
 {
-  "name": "@repo/fetch-from-ts",
+  "name": "@tokens-studio/fetch-from-ts",
   "version": "0.0.0",
   "type": "module",
   "private": true,
