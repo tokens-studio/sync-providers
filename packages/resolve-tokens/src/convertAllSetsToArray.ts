@@ -77,21 +77,20 @@ export async function convertSingleSetToArray(
         original,
         path,
         attributes: _attributes,
-        // TODO: Properly adjust if dtcg or not
-        // $value: _value,
-        // $type: _type,
-        value: _value,
-        type: _type,
+        // Extract value and type - both types could be present but we dont need it
+        $value,
+        value,
+        $type,
+        type,
         ...rest
       } = token;
+      const tokenValue = isUsingDTCG ? original?.$value : original?.value;
+      const tokenType = isUsingDTCG ? original?.$type : original?.type;
       return {
         ...rest,
         name: path?.join("."),
-        // TODO: Properly adjust if dtcg or not
-        // value: original?.$value,
-        // type: original?.$type,
-        value: original?.value,
-        type: original?.type,
+        value: tokenValue,
+        type: tokenType,
       };
     },
   );

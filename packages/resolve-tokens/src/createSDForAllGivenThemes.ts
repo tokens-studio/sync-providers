@@ -8,6 +8,7 @@ import Color from "colorjs.io";
 import type { UsedTokenSetsMap } from "@tokens-studio/types";
 import { parseFontShorthand } from "./parseFontShorthand.js";
 import { parseColor } from "./parseColor.js";
+import { TokenSetStatus } from "@tokens-studio/types";
 
 register(StyleDictionary);
 
@@ -95,12 +96,42 @@ export async function createSDForAllGivenThemes(
       if (!formattedTokens || !formattedTokens.length) return acc;
       const output = formattedTokens[0]?.output as PreprocessedTokens[];
 
-      console.log("output", output);
+      // Filter tokens based on enabled sets in current theme
+      const groupName = themeName.split("/")[0];
+      const optionName = themeName.split("/")[1];
+      const currentTheme = themes
+        .find(
+          (themeGroup) =>
+            themeGroup.name === groupName &&
+            themeGroup.options.some((option) => option.name === optionName),
+        )
+        ?.options.find((option) => option.name === optionName);
+
+      console.log("currentTheme", themeName, themes, currentTheme);
+
+      if (!currentTheme) {
+        return acc;
+      }
+
+      const enabledSets = Object.entries(currentTheme.selectedTokenSets)
+        .filter(([_, status]) => status === TokenSetStatus.ENABLED)
+        .reduce((acc, [setName]) => ({ ...acc, [setName]: true }), {});
+
+      const filteredOutput = output.filter((token) => {
+        const tokenSet = token.original?.internal__Parent;
+        return tokenSet && enabledSets[tokenSet];
+      });
+
+      if (!filteredOutput.length) {
+        return acc;
+      }
+
+      console.log("output", filteredOutput);
 
       // We need to adjust the output value to what the platform expects.
       // This doesnt seem to work yet with transformers, so we perform this additional step here.
       // Ideally I wouldn't have this step and I could do it in the form of a transformer above.
-      const transformedOutput = output.map((token) => {
+      const transformedOutput = filteredOutput.map((token) => {
         if (token.type === "color" && typeof token.value === "string") {
           const transformedColor = new Color(token.value)
             .to("srgb")
