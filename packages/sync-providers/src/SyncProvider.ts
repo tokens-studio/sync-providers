@@ -20,7 +20,7 @@ export interface StorageInterface {
     branch: string;
   }): Promise<boolean>;
   fetchBranches(): Promise<string[]>;
-  createBranch(branch: string): Promise<boolean>;
+  createBranch(branch: string, source?: string): Promise<boolean>;
   read(): Promise<{ path: string; name: string; data: unknown }[]>;
 }
 
@@ -63,6 +63,7 @@ export class SyncProvider {
     branch: string,
   ) => this.storage.writeChangeset({ files, commitMessage, branch });
   public fetchBranches = () => this.storage.fetchBranches();
-  public createBranch = (branch: string) => this.storage.createBranch(branch);
+  public createBranch = (branch: string, source?: string) =>
+    this.storage.createBranch(branch, source);
   public pull = () => this.storage.read();
 }

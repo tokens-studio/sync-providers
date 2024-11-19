@@ -159,12 +159,10 @@ export class GitHubStorage extends GitStorage {
 
       // There's some existing files in the branch and this directory
       if (Array.isArray(existingContentsOfDirectory.data)) {
-        console.log("existingContentsOfDirectory", existingContentsOfDirectory);
         filesToDelete = await this.getFilesToDelete(
           existingContentsOfDirectory.data,
           changeset.files,
         );
-        console.log("filesToDelete", filesToDelete);
       }
     } catch (e) {
       console.error(
