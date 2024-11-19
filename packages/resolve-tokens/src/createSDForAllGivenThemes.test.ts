@@ -52,15 +52,25 @@ const testThemes: NewExperimentalThemeObject[] = [
     options: [
       {
         name: "Light",
-        selectedTokenSets: { "mode/light": TokenSetStatus.ENABLED },
+        selectedTokenSets: {
+          "mode/light": TokenSetStatus.ENABLED,
+          components: TokenSetStatus.ENABLED,
+        },
       },
       {
         name: "Dark",
-        selectedTokenSets: { "mode/dark": TokenSetStatus.ENABLED },
+        selectedTokenSets: {
+          "mode/dark": TokenSetStatus.ENABLED,
+          components: TokenSetStatus.ENABLED,
+        },
       },
       {
         name: "HighContrast",
-        selectedTokenSets: { highContrast: TokenSetStatus.ENABLED },
+        selectedTokenSets: {
+          components: TokenSetStatus.ENABLED,
+          "mode/dark": TokenSetStatus.ENABLED,
+          highContrast: TokenSetStatus.SOURCE,
+        },
       },
     ],
   },
@@ -97,7 +107,7 @@ describe("createSDForAllGivenThemes", () => {
     expect(Object.keys(result)).toHaveLength(5); // Expecting 5 theme options: Light, Dark, HighContrast, Primitives Default, Components Default
 
     // Check Mode/Light theme
-    expect(result["Mode/Light"]).toHaveLength(6);
+    expect(result["Mode/Light"]).toHaveLength(4);
     const buttonBackground = result["Mode/Light"].find(
       (token) => token.name === "button.background",
     );
@@ -136,7 +146,7 @@ describe("createSDForAllGivenThemes", () => {
     });
 
     // Check Mode/Dark theme
-    expect(result["Mode/Dark"]).toHaveLength(6);
+    expect(result["Mode/Dark"]).toHaveLength(4);
     const darkPrimaryBackground = result["Mode/Dark"].find(
       (token) => token.name === "color.background.primary",
     );
@@ -157,7 +167,7 @@ describe("createSDForAllGivenThemes", () => {
     });
 
     // Check Mode/HighContrast theme
-    expect(result["Mode/HighContrast"]).toHaveLength(6);
+    expect(result["Mode/HighContrast"]).toHaveLength(4);
     const highContrastPrimaryBackground = result["Mode/HighContrast"].find(
       (token) => token.name === "color.background.primary",
     );
@@ -178,7 +188,7 @@ describe("createSDForAllGivenThemes", () => {
     });
 
     // Check Primitives/Default theme
-    expect(result["Primitives/Default"]).toHaveLength(6);
+    expect(result["Primitives/Default"]).toHaveLength(2);
     const primitivesGray100 = result["Primitives/Default"].find(
       (token) => token.name === "color.gray.100",
     );
@@ -199,7 +209,7 @@ describe("createSDForAllGivenThemes", () => {
     });
 
     // Check Components/Default theme
-    expect(result["Components/Default"]).toHaveLength(6);
+    expect(result["Components/Default"]).toHaveLength(2);
     const componentsButtonBackground = result["Components/Default"].find(
       (token) => token.name === "button.background",
     );
@@ -395,5 +405,110 @@ describe("createSDForAllGivenThemes", () => {
     });
     expect(pureColor?.value).toStrictEqual({ r: 1, g: 0, b: 0, a: 1 });
     expect(pureColor?.attributes.isUsingPureReference).toBe(true);
+  });
+
+  it("should only include tokens from enabled token sets in each theme", async () => {
+    const isolatedTokenSets: Record<string, DesignTokens> = {
+      set1: {
+        color: {
+          red: { $value: "#FF0000", $type: "color" },
+          blue: { $value: "#0000FF", $type: "color" },
+        },
+      },
+      set2: {
+        color: {
+          green: { $value: "#00FF00", $type: "color" },
+          yellow: { $value: "#FFFF00", $type: "color" },
+        },
+      },
+      set3: {
+        color: {
+          purple: { $value: "#800080", $type: "color" },
+          orange: { $value: "#FFA500", $type: "color" },
+        },
+      },
+    };
+
+    const isolatedThemes: NewExperimentalThemeObject[] = [
+      {
+        name: "Theme1",
+        id: "theme1",
+        options: [
+          {
+            name: "Default",
+            selectedTokenSets: {
+              set1: TokenSetStatus.ENABLED,
+            },
+          },
+        ],
+      },
+      {
+        name: "Theme2",
+        id: "theme2",
+        options: [
+          {
+            name: "Default",
+            selectedTokenSets: {
+              set2: TokenSetStatus.ENABLED,
+            },
+          },
+        ],
+      },
+    ];
+
+    const result = await createSDForAllGivenThemes(
+      isolatedTokenSets,
+      isolatedThemes,
+    );
+
+    console.log("result", result);
+
+    // Check Theme1/Default
+    expect(result["Theme1/Default"]).toBeDefined();
+    const theme1Tokens = result["Theme1/Default"];
+
+    // Should only contain tokens from set1
+    expect(theme1Tokens.some((token) => token.name === "color.red")).toBe(true);
+    expect(theme1Tokens.some((token) => token.name === "color.blue")).toBe(
+      true,
+    );
+    // Should not contain tokens from set2 or set3
+    expect(theme1Tokens.some((token) => token.name === "color.green")).toBe(
+      false,
+    );
+    expect(theme1Tokens.some((token) => token.name === "color.yellow")).toBe(
+      false,
+    );
+    expect(theme1Tokens.some((token) => token.name === "color.purple")).toBe(
+      false,
+    );
+    expect(theme1Tokens.some((token) => token.name === "color.orange")).toBe(
+      false,
+    );
+
+    // Check Theme2/Default
+    expect(result["Theme2/Default"]).toBeDefined();
+    const theme2Tokens = result["Theme2/Default"];
+
+    // Should only contain tokens from set2
+    expect(theme2Tokens.some((token) => token.name === "color.green")).toBe(
+      true,
+    );
+    expect(theme2Tokens.some((token) => token.name === "color.yellow")).toBe(
+      true,
+    );
+    // Should not contain tokens from set1 or set3
+    expect(theme2Tokens.some((token) => token.name === "color.red")).toBe(
+      false,
+    );
+    expect(theme2Tokens.some((token) => token.name === "color.blue")).toBe(
+      false,
+    );
+    expect(theme2Tokens.some((token) => token.name === "color.purple")).toBe(
+      false,
+    );
+    expect(theme2Tokens.some((token) => token.name === "color.orange")).toBe(
+      false,
+    );
   });
 });
