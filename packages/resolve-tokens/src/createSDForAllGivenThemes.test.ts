@@ -461,8 +461,6 @@ describe("createSDForAllGivenThemes", () => {
       isolatedThemes,
     );
 
-    console.log("result", result);
-
     // Check Theme1/Default
     expect(result["Theme1/Default"]).toBeDefined();
     const theme1Tokens = result["Theme1/Default"];
