@@ -1,40 +1,43 @@
 import {
   rawTokenToSingleToken,
   RawToken,
-  Graphql,
-  Configuration,
+  create,
   ThemeGroup,
   TokenSet,
-  ProjectQuery,
 } from "@tokens-studio/sdk";
 import set from "set-value";
 import { formatThemeResponse } from "./utils/formatThemeResponse.js";
 import { TOKENS_DATA_QUERY } from "./queries/TOKENS_DATA_QUERY.js";
-import { fetchWithRetry } from "./utils/fetchWithRetry.js";
 
 export async function fetchTokensFromStudio({
-  urn,
+  projectId,
+  organization,
   apiKey,
 }: {
-  urn: string;
+  projectId: string;
+  organization: string;
   apiKey?: string;
 }) {
-  if (!urn) {
-    console.error("No project chosen");
+  if (!projectId || !organization) {
+    console.error("No project org organization chosen");
     return;
   }
-  if (apiKey) {
-    Configuration.setAPIKey(apiKey);
-  }
   try {
-    const data = await fetchWithRetry(() =>
-      Graphql.exec<ProjectQuery>(
-        Graphql.op(TOKENS_DATA_QUERY, {
-          limit: 3000,
-          urn,
-        }),
-      ),
-    );
+    const client = create({
+      host: process.env.TOKENS_STUDIO_API_HOST || "localhost:4200",
+      secure: process.env.NODE_ENV !== "development",
+      auth: `Bearer ${apiKey}`,
+    });
+    const data = await client.query({
+      query: TOKENS_DATA_QUERY,
+      variables: {
+        projectId,
+        organization,
+        name: "master",
+      },
+    });
+
+    console.log("data", data);
 
     if (data.errors) {
       console.error("error", data.errors[0].path);
@@ -45,9 +48,12 @@ export async function fetchTokensFromStudio({
       return;
     }
 
-    const rawTokenSets = (data.data?.project?.sets as TokenSet[]) || [];
+    console.log("data", data.data);
+
+    const rawTokenSets =
+      (data.data?.project?.branch?.tokenSets as TokenSet[]) || [];
     const rawThemeGroups =
-      (data.data?.project?.themeGroups as ThemeGroup[]) || [];
+      (data.data?.project?.branch?.themeGroups as ThemeGroup[]) || [];
     const formattedThemeGroups = formatThemeResponse(rawThemeGroups);
 
     const tokenSetTrees = rawTokenSets.reduce(
