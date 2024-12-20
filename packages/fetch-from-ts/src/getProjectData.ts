@@ -1,5 +1,5 @@
 import { GET_PROJECT_DATA_QUERY } from "./queries/GET_PROJECT_DATA_QUERY.js";
-import { ThemeGroup, TokenSetType, TokensSet } from "@tokens-studio/sdk";
+import { TokenSetType } from "@tokens-studio/sdk";
 import { type AnyTokenSet } from "@tokens-studio/types";
 
 type ProjectData = {

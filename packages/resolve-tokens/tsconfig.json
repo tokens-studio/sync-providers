@@ -4,6 +4,6 @@
 		"outDir": "dist",
 		"rootDir": "src"
 	},
-	"include": ["src", "../types/NewExperimentalThemeObject.ts"],
+	"include": ["src", "../internal-types/NewExperimentalThemeObject.ts"],
 	"exclude": ["node_modules", "dist"]
 }
