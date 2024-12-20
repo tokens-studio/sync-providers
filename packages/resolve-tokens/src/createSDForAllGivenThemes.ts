@@ -57,7 +57,6 @@ export async function createSDForAllGivenThemes(
   themes: NewExperimentalThemeObject[],
   overallConfig?: UsedTokenSetsMap,
 ): Promise<Record<string, PreprocessedTokens[]>> {
-  console.log("themes", themes, tokenSets);
   const mergedTokensForAllThemes = await generateThemes(
     tokenSets,
     themes,
@@ -107,8 +106,6 @@ export async function createSDForAllGivenThemes(
         )
         ?.options.find((option) => option.name === optionName);
 
-      console.log("currentTheme", themeName, themes, currentTheme);
-
       if (!currentTheme) {
         return acc;
       }
@@ -125,8 +122,6 @@ export async function createSDForAllGivenThemes(
       if (!filteredOutput.length) {
         return acc;
       }
-
-      console.log("output", filteredOutput);
 
       // We need to adjust the output value to what the platform expects.
       // This doesnt seem to work yet with transformers, so we perform this additional step here.
