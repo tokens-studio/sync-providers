@@ -1,12 +1,12 @@
-import { DesignTokens } from "style-dictionary/types";
-import { UsedTokenSetsMap } from "@tokens-studio/types";
+import { type DesignTokens } from "style-dictionary/types";
+import { type UsedTokenSetsMap } from "@tokens-studio/types";
 import { mergeTokenGroups } from "./mergeTokenGroups.js";
 import { convertAllSetsToCombinedObject } from "./convertAllSetsToCombinedObject.js";
-import { NewExperimentalThemeObject } from "../../types/NewExperimentalThemeObject.js";
-import { SingleToken } from "@tokens-studio/types";
+import { type NewExperimentalThemeObject } from "../../types/NewExperimentalThemeObject.js";
+import { type SingleToken } from "@tokens-studio/types";
 
 export async function generateThemes(
-  tokenSets: Record<string, DesignTokens>,
+  tokenSets: Record<string, DesignTokens | SingleToken[]>,
   themes: NewExperimentalThemeObject[],
   overallConfig?: UsedTokenSetsMap,
 ) {

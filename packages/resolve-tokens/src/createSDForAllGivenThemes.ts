@@ -9,6 +9,7 @@ import type { UsedTokenSetsMap } from "@tokens-studio/types";
 import { parseFontShorthand } from "./parseFontShorthand.js";
 import { parseColor } from "./parseColor.js";
 import { TokenSetStatus } from "@tokens-studio/types";
+import { type SingleToken } from "@tokens-studio/types";
 
 register(StyleDictionary);
 
@@ -53,7 +54,7 @@ StyleDictionary.registerTransform({
 });
 
 export async function createSDForAllGivenThemes(
-  tokenSets: Record<string, DesignTokens>,
+  tokenSets: Record<string, DesignTokens | SingleToken[]>,
   themes: NewExperimentalThemeObject[],
   overallConfig?: UsedTokenSetsMap,
 ): Promise<Record<string, PreprocessedTokens[]>> {
