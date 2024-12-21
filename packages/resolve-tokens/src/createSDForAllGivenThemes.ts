@@ -77,14 +77,24 @@ StyleDictionary.registerTransform({
         type === "border" &&
         typeof token.value === "string" &&
         token.value.includes(" ");
+
+      let reason: string | undefined = undefined;
+      if (excludedTypes.includes(type)) {
+        reason = `Type '${type}' is not supported in Figma variables`;
+      } else if (isGradient) {
+        reason = "Gradient values are not supported in Figma variables";
+      } else if (isMultiValueBorderRadius) {
+        reason =
+          "Multi-value border radius is not supported in Figma variables";
+      }
+
       return {
-        isValidForFigmaVariable:
-          !excludedTypes.includes(type) &&
-          !isGradient &&
-          !isMultiValueBorderRadius,
+        invalidForFigmaVariableReason: reason,
       };
     }
-    return {};
+    return {
+      invalidForFigmaVariableReason: undefined,
+    };
   },
 });
 
