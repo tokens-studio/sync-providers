@@ -1,6 +1,6 @@
 import StyleDictionary from "style-dictionary";
 import { generateThemes } from "./generateThemes.js";
-import type { NewExperimentalThemeObject } from "../../types/NewExperimentalThemeObject.js";
+import type { NewExperimentalThemeObject } from "../../internal-types/NewExperimentalThemeObject.js";
 import type { DesignTokens, PreprocessedTokens } from "style-dictionary/types";
 import { convertArrayToNestedObject } from "./convertArrayToNestedObject.js";
 import { register } from "@tokens-studio/sd-transforms";
@@ -9,6 +9,7 @@ import type { UsedTokenSetsMap } from "@tokens-studio/types";
 import { parseFontShorthand } from "./parseFontShorthand.js";
 import { parseColor } from "./parseColor.js";
 import { TokenSetStatus } from "@tokens-studio/types";
+import { type SingleToken } from "@tokens-studio/types";
 
 register(StyleDictionary);
 
@@ -53,7 +54,7 @@ StyleDictionary.registerTransform({
 });
 
 export async function createSDForAllGivenThemes(
-  tokenSets: Record<string, DesignTokens>,
+  tokenSets: Record<string, DesignTokens | SingleToken[]>,
   themes: NewExperimentalThemeObject[],
   overallConfig?: UsedTokenSetsMap,
 ): Promise<Record<string, PreprocessedTokens[]>> {

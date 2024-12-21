@@ -1,86 +1,38 @@
-import {
-  rawTokenToSingleToken,
-  RawToken,
-  Graphql,
-  Configuration,
-  ThemeGroup,
-  TokenSet,
-  ProjectQuery,
-} from "@tokens-studio/sdk";
-import set from "set-value";
-import { formatThemeResponse } from "./utils/formatThemeResponse.js";
-import { TOKENS_DATA_QUERY } from "./queries/TOKENS_DATA_QUERY.js";
-import { fetchWithRetry } from "./utils/fetchWithRetry.js";
+import { create } from "@tokens-studio/sdk";
+import { getProjectData } from "./getProjectData.js";
+
+const makeClient = (secret: string) =>
+  create({
+    host: process.env.TOKENS_STUDIO_API_HOST || "graphql.app.tokens.studio",
+    secure: process.env.NODE_ENV !== "development",
+    auth: `Bearer ${secret}`,
+  });
 
 export async function fetchTokensFromStudio({
-  urn,
+  projectId,
+  organization,
   apiKey,
 }: {
-  urn: string;
-  apiKey?: string;
+  projectId: string;
+  organization: string;
+  apiKey: string;
 }) {
-  if (!urn) {
-    console.error("No project chosen");
+  const client = makeClient(apiKey);
+  if (!projectId || !organization) {
+    console.error("No project org organization chosen");
     return;
   }
-  if (apiKey) {
-    Configuration.setAPIKey(apiKey);
-  }
   try {
-    const data = await fetchWithRetry(() =>
-      Graphql.exec<ProjectQuery>(
-        Graphql.op(TOKENS_DATA_QUERY, {
-          limit: 3000,
-          urn,
-        }),
-      ),
-    );
+    const projectData = await getProjectData(projectId, organization, client);
 
-    if (data.errors) {
-      console.error("error", data.errors[0].path);
-    }
-
-    if (!data.data) {
+    if (!projectData) {
       console.error("No data found");
       return;
     }
 
-    const rawTokenSets = (data.data?.project?.sets as TokenSet[]) || [];
-    const rawThemeGroups =
-      (data.data?.project?.themeGroups as ThemeGroup[]) || [];
-    const formattedThemeGroups = formatThemeResponse(rawThemeGroups);
-
-    const tokenSetTrees = rawTokenSets.reduce(
-      (acc: Record<string, object>, tokenSet) => {
-        const stringified = tokenSet.tokens.reduce(
-          (tokenAcc: object, token: RawToken) => {
-            try {
-              set(
-                tokenAcc,
-                token.name!.split("."),
-                rawTokenToSingleToken(token),
-              );
-            } catch (e) {
-              console.log("error", e, token.name);
-            }
-            return tokenAcc;
-          },
-          {},
-        );
-        acc[tokenSet.name] = stringified;
-        return acc;
-      },
-      {},
-    );
-
-    const projectInfo = {
-      name: data.data?.project?.name,
-    };
-
     return {
-      tokenSetTrees,
-      themeGroups: formattedThemeGroups,
-      projectInfo,
+      tokens: projectData.tokens,
+      themes: projectData.themes,
     };
   } catch (err) {
     console.error(err);

@@ -1,7 +1,7 @@
 import type { ThemeGroupOption } from "./ThemeGroupOption.js";
 
 export interface ThemeGroup {
-  urn: string;
+  id: string;
   name: string;
   options: ThemeGroupOption[];
 }

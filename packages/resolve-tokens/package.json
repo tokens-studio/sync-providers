@@ -16,6 +16,7 @@
   "devDependencies": {
     "@tokens-studio/configs": "^0.2.1",
     "@tokens-studio/sd-transforms": "^1.2.5",
+    "@tokens-studio/types": "^0.5.1",
     "@turbo/gen": "^1.12.4",
     "@types/node": "^20.11.24",
     "@types/react": "^18.2.61",
