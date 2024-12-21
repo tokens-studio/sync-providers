@@ -10,6 +10,8 @@ import { parseFontShorthand } from "./parseFontShorthand.js";
 import { parseColor } from "./parseColor.js";
 import { TokenSetStatus } from "@tokens-studio/types";
 import { type SingleToken } from "@tokens-studio/types";
+import { getFigmaTypeForTokenType } from "./getFigmaTypeForTokenType.js";
+import { getFigmaScopeForTokenType } from "./getFigmaScopeForTokenType.js";
 
 register(StyleDictionary);
 
@@ -53,6 +55,38 @@ StyleDictionary.registerTransform({
   },
 });
 
+// Register a transform that adds if the token can be created as a figma variable or not
+StyleDictionary.registerTransform({
+  name: "attribute/isValidForFigmaVariable",
+  type: "attribute",
+  transform: (token) => {
+    if (typeof token.type === "string") {
+      const type = token.type;
+      const excludedTypes = ["composition", "shadow", "border", "typography"];
+
+      const isGradient =
+        typeof token.value === "string" &&
+        token.value?.startsWith("linear-gradient");
+      return {
+        isValidForFigmaVariable: !excludedTypes.includes(type) && !isGradient,
+      };
+    }
+    return {};
+  },
+});
+
+// Register a transform that adds the specific Figma type and its scoping
+StyleDictionary.registerTransform({
+  name: "attribute/figmaTypeAndScope",
+  type: "attribute",
+  transform: (token) => {
+    return {
+      figmaType: getFigmaTypeForTokenType(token),
+      figmaScope: getFigmaScopeForTokenType(token),
+    };
+  },
+});
+
 export async function createSDForAllGivenThemes(
   tokenSets: Record<string, DesignTokens | SingleToken[]>,
   themes: NewExperimentalThemeObject[],
@@ -81,6 +115,8 @@ export async function createSDForAllGivenThemes(
               "name/original",
               "size/pxToNumber",
               "attribute/isPureReference",
+              "attribute/isValidForFigmaVariable",
+              "attribute/figmaTypeAndScope",
             ],
             buildPath: "build/array/",
             files: [
@@ -93,6 +129,7 @@ export async function createSDForAllGivenThemes(
       });
 
       const formattedTokens = await sd.formatPlatform("array");
+      console.log("formattedTokens", formattedTokens);
       if (!formattedTokens || !formattedTokens.length) return acc;
       const output = formattedTokens[0]?.output as PreprocessedTokens[];
 
@@ -124,11 +161,17 @@ export async function createSDForAllGivenThemes(
         return acc;
       }
 
+      console.log("filteredOutput", filteredOutput);
+
       // We need to adjust the output value to what the platform expects.
       // This doesnt seem to work yet with transformers, so we perform this additional step here.
       // Ideally I wouldn't have this step and I could do it in the form of a transformer above.
       const transformedOutput = filteredOutput.map((token) => {
-        if (token.type === "color" && typeof token.value === "string") {
+        if (
+          token.type === "color" &&
+          typeof token.value === "string" &&
+          !token.value.startsWith("linear-gradient")
+        ) {
           const transformedColor = new Color(token.value)
             .to("srgb")
             .toString({ format: "hex" });
