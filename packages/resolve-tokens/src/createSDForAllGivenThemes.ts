@@ -62,13 +62,26 @@ StyleDictionary.registerTransform({
   transform: (token) => {
     if (typeof token.type === "string") {
       const type = token.type;
-      const excludedTypes = ["composition", "shadow", "border", "typography"];
+      const excludedTypes = [
+        "composition",
+        "shadow",
+        "border",
+        "typography",
+        "asset",
+      ];
 
       const isGradient =
         typeof token.value === "string" &&
         token.value?.startsWith("linear-gradient");
+      const isMultiValueBorderRadius =
+        type === "border" &&
+        typeof token.value === "string" &&
+        token.value.includes(" ");
       return {
-        isValidForFigmaVariable: !excludedTypes.includes(type) && !isGradient,
+        isValidForFigmaVariable:
+          !excludedTypes.includes(type) &&
+          !isGradient &&
+          !isMultiValueBorderRadius,
       };
     }
     return {};
@@ -182,6 +195,12 @@ export async function createSDForAllGivenThemes(
         } else if (token.type === "typography") {
           const parsedFont = parseFontShorthand(token.value);
           token.value = parsedFont;
+        } else if (
+          token.attributes?.figmaType === "FLOAT" &&
+          typeof token.value === "string" &&
+          !token.value?.startsWith("{")
+        ) {
+          token.value = parseFloat(token.value);
         }
         return token;
       });

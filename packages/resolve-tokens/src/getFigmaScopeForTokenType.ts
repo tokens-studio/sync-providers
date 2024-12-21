@@ -1,9 +1,10 @@
 import type { DesignToken } from "style-dictionary/types";
 
 export function getFigmaScopeForTokenType(token: DesignToken): VariableScope {
-  if (!token.type) throw new Error("Token type is required");
+  const type = token.$extensions?.["studio.tokens"]?.originalType || token.type;
+  if (!type) throw new Error("Token type is required");
 
-  switch (token.type.toLowerCase()) {
+  switch (type.toLowerCase()) {
     case "color":
       return {
         scopes: ["ALL_SCOPES"],
