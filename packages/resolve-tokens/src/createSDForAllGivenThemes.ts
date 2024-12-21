@@ -115,15 +115,10 @@ export async function createSDForAllGivenThemes(
         .filter(([_, status]) => status === TokenSetStatus.ENABLED)
         .reduce((acc, [setName]) => ({ ...acc, [setName]: true }), {});
 
-      console.log("enabledSets", enabledSets);
-      console.log("output", output);
-
       const filteredOutput = output.filter((token) => {
         const tokenSet = token.original?.internal__Parent;
         return tokenSet && enabledSets[tokenSet];
       });
-
-      console.log("filteredOutput", filteredOutput);
 
       if (!filteredOutput.length) {
         return acc;
