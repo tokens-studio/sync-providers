@@ -9,7 +9,7 @@ export const attributeFigmaTypeAndScope = {
   transform: (token: TransformedToken) => {
     return {
       figmaType: getFigmaTypeForTokenType(token),
-      figmaScope: getFigmaScopeForTokenType(token),
+      figmaScopes: getFigmaScopeForTokenType(token),
     };
   },
 };
