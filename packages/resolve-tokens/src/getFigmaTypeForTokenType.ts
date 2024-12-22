@@ -1,14 +1,14 @@
 import type { DesignToken } from "style-dictionary/types";
+import { isNumberWeight } from "./utils/isNumberWeight.js";
 
 export function getFigmaTypeForTokenType(
   token: DesignToken,
 ): VariableResolvedDataType {
   if (!token.type) throw new Error("Token type is required");
 
-  if (token.type === "fontWeight" && typeof token.value === "string") {
-    return "STRING";
-  } else if (token.type === "fontWeight" && typeof token.value === "number") {
-    return "FLOAT";
+  // Special case for font weight
+  if (token.type === "fontWeight") {
+    return isNumberWeight(token.original?.value) ? "FLOAT" : "STRING";
   }
 
   switch (token.type?.toLowerCase()) {

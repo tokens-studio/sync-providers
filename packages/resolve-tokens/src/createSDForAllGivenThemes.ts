@@ -12,6 +12,7 @@ import { TokenSetStatus } from "@tokens-studio/types";
 import { type SingleToken } from "@tokens-studio/types";
 import { getFigmaTypeForTokenType } from "./getFigmaTypeForTokenType.js";
 import { getFigmaScopeForTokenType } from "./getFigmaScopeForTokenType.js";
+import { isNumberWeight } from "./utils/isNumberWeight.js";
 
 register(StyleDictionary);
 
@@ -202,15 +203,24 @@ export async function createSDForAllGivenThemes(
           const parsedColor = parseColor(transformedColor);
           // token.value = transformedColor;
           token.value = parsedColor;
-        } else if (token.type === "typography") {
+        }
+        if (token.type === "typography") {
           const parsedFont = parseFontShorthand(token.value);
           token.value = parsedFont;
-        } else if (
+        }
+        if (
           token.attributes?.figmaType === "FLOAT" &&
           typeof token.value === "string" &&
           !token.value?.startsWith("{")
         ) {
           token.value = parseFloat(token.value);
+        }
+        if (token.type === "fontWeight") {
+          token.value = token.original?.value.startsWith("{")
+            ? token.original?.value
+            : isNumberWeight(token.original?.value)
+              ? parseFloat(token.original?.value)
+              : token.original?.value;
         }
         return token;
       });

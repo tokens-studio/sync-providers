@@ -1,4 +1,5 @@
 import type { DesignToken } from "style-dictionary/types";
+import { isNumberWeight } from "./utils/isNumberWeight.js";
 
 export function getFigmaScopeForTokenType(token: DesignToken): VariableScope {
   const type = token.$extensions?.["studio.tokens"]?.originalType || token.type;
@@ -13,9 +14,13 @@ export function getFigmaScopeForTokenType(token: DesignToken): VariableScope {
       return {
         scopes: ["CORNER_RADIUS"],
       };
+    case "borderwidth":
+      return {
+        scopes: ["STROKE_FLOAT"],
+      };
     case "spacing":
       return {
-        scopes: ["GAP", "PADDING"],
+        scopes: ["GAP"],
       };
     case "sizing":
       return {
@@ -30,6 +35,7 @@ export function getFigmaScopeForTokenType(token: DesignToken): VariableScope {
         scopes: ["FONT_SIZE"],
       };
     case "lineheight":
+    case "lineheights":
       return {
         scopes: ["LINE_HEIGHT"],
       };
@@ -42,18 +48,20 @@ export function getFigmaScopeForTokenType(token: DesignToken): VariableScope {
         scopes: ["PARAGRAPH_SPACING"],
       };
     case "fontfamily":
+    case "fontfamilies":
       return {
         scopes: ["FONT_FAMILY"],
       };
     case "fontweight":
+    case "fontweights":
       return {
-        scopes: ["FONT_WEIGHT"],
+        scopes: isNumberWeight(token.original?.value)
+          ? ["FONT_WEIGHT"]
+          : ["FONT_STYLE"],
       };
-    case "textalign":
-    case "textdecoration":
-    case "texttransform":
+    case "text":
       return {
-        scopes: ["TEXT"],
+        scopes: ["TEXT_CONTENT"],
       };
     default:
       return {
