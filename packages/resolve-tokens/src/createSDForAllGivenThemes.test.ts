@@ -1,6 +1,6 @@
 import { TokenSetStatus } from "@tokens-studio/types";
 import type { DesignTokens } from "style-dictionary/types";
-import type { NewExperimentalThemeObject } from "../../internal-types/NewExperimentalThemeObject.js";
+import type { NewExperimentalThemeObject } from "../../internal-types/src/NewExperimentalThemeObject.js";
 import { expect, describe, it } from "vitest";
 import { createSDForAllGivenThemes } from "./createSDForAllGivenThemes.js";
 

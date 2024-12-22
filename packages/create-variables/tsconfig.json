@@ -3,9 +3,9 @@
 	"compilerOptions": {
 		"outDir": "dist",
 		"rootDir": "src",
-		"types": [
+		"typeRoots": [
 			"@types",
-			"@figma/plugin-typings"
+			"../../node_modules/@figma/plugin-typings"
 		]
 	},
 	"include": ["src", "../internal-types/src/NewExperimentalThemeObject.ts"],
