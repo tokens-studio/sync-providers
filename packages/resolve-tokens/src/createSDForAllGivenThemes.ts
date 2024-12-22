@@ -10,106 +10,19 @@ import { parseFontShorthand } from "./parseFontShorthand.js";
 import { parseColor } from "./parseColor.js";
 import { TokenSetStatus } from "@tokens-studio/types";
 import { type SingleToken } from "@tokens-studio/types";
-import { getFigmaTypeForTokenType } from "./getFigmaTypeForTokenType.js";
-import { getFigmaScopeForTokenType } from "./getFigmaScopeForTokenType.js";
 import { isNumberWeight } from "./utils/isNumberWeight.js";
+import { sizePxToNumber } from "./transforms/sizePxToNumber.js";
+import { attributeIsPureReference } from "./transforms/attributeIsPureReference.js";
+import { attributeInvalidForFigmaVariableReason } from "./transforms/attributeInvalidForFigmaVariableReason.js";
+import { attributeFigmaTypeAndScope } from "./transforms/attributeFigmaTypeAndScope.js";
 
 register(StyleDictionary);
 
-// Register a new transform to convert units to pure numbers
-// Figma doesnt know units, just numbers. So we expect that they're 16px (but technically we should support a dynamic base font size via a token and resolving)
-StyleDictionary.registerTransform({
-  name: "size/pxToNumber",
-  type: "value",
-  transitive: true,
-  transform: (token) => {
-    const value = token.value;
-    if (typeof value === "string") {
-      if (value.endsWith("px")) {
-        return parseFloat(value);
-      } else if (value.endsWith("rem")) {
-        // Assuming 1rem = 16px
-        return parseFloat(value) * 16;
-      } else if (value.endsWith("em")) {
-        // Assuming 1em = 16px, same as rem
-        return parseFloat(value) * 16;
-      }
-    }
-    return value;
-  },
-});
-
-// Register a new transform to add isUsingPureReference property
-// We need this to understand if we can create an alias inside design tools (as Figma only supports pure reference links)
-StyleDictionary.registerTransform({
-  name: "attribute/isPureReference",
-  type: "attribute",
-  transform: (token) => {
-    if (typeof token.original.value === "string") {
-      const value = token.original.value.trim();
-      const isPureReference = /^{[^{}]+}$/.test(value);
-      return {
-        isUsingPureReference: isPureReference,
-      };
-    }
-    return {};
-  },
-});
-
-// Register a transform that adds if the token can be created as a figma variable or not
-StyleDictionary.registerTransform({
-  name: "attribute/isValidForFigmaVariable",
-  type: "attribute",
-  transform: (token) => {
-    if (typeof token.type === "string") {
-      const type = token.type;
-      const excludedTypes = [
-        "composition",
-        "shadow",
-        "border",
-        "typography",
-        "asset",
-      ];
-
-      const isGradient =
-        typeof token.value === "string" &&
-        token.value?.startsWith("linear-gradient");
-      const isMultiValueBorderRadius =
-        type === "border" &&
-        typeof token.value === "string" &&
-        token.value.includes(" ");
-
-      let reason: string | undefined = undefined;
-      if (excludedTypes.includes(type)) {
-        reason = `Type '${type}' is not supported in Figma variables`;
-      } else if (isGradient) {
-        reason = "Gradient values are not supported in Figma variables";
-      } else if (isMultiValueBorderRadius) {
-        reason =
-          "Multi-value border radius is not supported in Figma variables";
-      }
-
-      return {
-        invalidForFigmaVariableReason: reason,
-      };
-    }
-    return {
-      invalidForFigmaVariableReason: undefined,
-    };
-  },
-});
-
-// Register a transform that adds the specific Figma type and its scoping
-StyleDictionary.registerTransform({
-  name: "attribute/figmaTypeAndScope",
-  type: "attribute",
-  transform: (token) => {
-    return {
-      figmaType: getFigmaTypeForTokenType(token),
-      figmaScope: getFigmaScopeForTokenType(token),
-    };
-  },
-});
+// Register all transforms
+StyleDictionary.registerTransform(sizePxToNumber);
+StyleDictionary.registerTransform(attributeIsPureReference);
+StyleDictionary.registerTransform(attributeInvalidForFigmaVariableReason);
+StyleDictionary.registerTransform(attributeFigmaTypeAndScope);
 
 export async function createSDForAllGivenThemes(
   tokenSets: Record<string, DesignTokens | SingleToken[]>,
@@ -139,7 +52,7 @@ export async function createSDForAllGivenThemes(
               "name/original",
               "size/pxToNumber",
               "attribute/isPureReference",
-              "attribute/isValidForFigmaVariable",
+              "attribute/invalidForFigmaVariableReason",
               "attribute/figmaTypeAndScope",
             ],
             buildPath: "build/array/",

@@ -1,5 +1,6 @@
 import type { DesignToken } from "style-dictionary/types";
-import { isNumberWeight } from "./utils/isNumberWeight.js";
+import { isNumberWeight } from "./isNumberWeight.js";
+import type { VariableResolvedDataType } from "@figma/plugin-typings/plugin-api-standalone.d.ts";
 
 export function getFigmaTypeForTokenType(
   token: DesignToken,
