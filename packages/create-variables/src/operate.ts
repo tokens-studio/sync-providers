@@ -1,9 +1,13 @@
-import type { ThemeObject } from "@tokens-studio/internal-types";
-import type { SingleToken } from "@tokens-studio/types";
+import type { FlattenedNode, ThemeObject } from "@tokens-studio/internal-types";
 import { getSourceCollectionVariables } from "./utils/getSourceCollectionVariables.js";
 import { createVariableCollectionWithModes } from "./createVariableCollectionWithModes.js";
 import { getLocalVariables } from "./utils/getLocalVariables.js";
 import { createTokensForCollectionMode } from "./createTokensForCollectionMode.js";
+import { normalizeFigmaValue } from "./utils/normalizeFigmaValue.js";
+import { areReferenceNamesEqual } from "./utils/areReferenceNamesEqual.js";
+import { normalizeTokenNameForFigma } from "./utils/normalizeTokenNameForFigma.js";
+import { getAliasName } from "./utils/getAliasName.js";
+import { normalizeTokenNameFromFigma } from "./utils/normalizeTokenNameFromFigma.js";
 
 export let createdTokens: Record<string, Variable> = {};
 export let updatedTokens: Record<string, Variable> = {};
@@ -12,7 +16,7 @@ export const variableIdToNameMap: Map<string, string> = new Map();
 
 interface CollectionWithModes {
   collection: VariableCollection;
-  modes: VariableMode[];
+  modes: { modeId: string; name: string }[];
 }
 
 interface OperateResult {
@@ -21,8 +25,83 @@ interface OperateResult {
   totalOperationTime: number;
 }
 
+interface ExistingVariable {
+  id: string;
+  value: any;
+  collection: string;
+  mode: string;
+  name: string;
+  type: VariableResolvedDataType;
+  description?: string;
+  scopes: VariableScope[];
+}
+
+function compareValues(
+  existing: ExistingVariable,
+  newToken: FlattenedNode,
+): boolean {
+  const rawValue = newToken.original.value;
+  const type = newToken.original.type;
+  const normalizedExisting = normalizeFigmaValue(existing.value, type);
+  const normalizedNew = normalizeFigmaValue(rawValue, type);
+
+  if (rawValue && areReferenceNamesEqual(normalizedExisting, rawValue)) {
+    return true;
+  }
+
+  const isSame =
+    JSON.stringify(normalizedExisting) === JSON.stringify(normalizedNew) &&
+    existing.description === newToken.description &&
+    existing.scopes.every((scope) =>
+      newToken.attributes.figmaScopes?.includes(scope),
+    );
+
+  return isSame;
+}
+
+async function getExistingVariables(): Promise<Map<string, ExistingVariable>> {
+  const collections = await figma.variables.getLocalVariableCollections();
+  const existingVars = new Map<string, ExistingVariable>();
+
+  for (const collection of collections) {
+    console.log("Collection:", collection.name);
+    const variables = collection.variableIds
+      .map((id) => figma.variables.getVariableById(id))
+      .filter((v): v is Variable => v !== null);
+
+    // First populate variableIdToNameMap
+    for (const variable of variables) {
+      const normalizedName = normalizeTokenNameFromFigma(variable.name);
+      const nameWithoutBrackets = getAliasName(normalizedName);
+      variableIdToNameMap.set(variable.id, nameWithoutBrackets);
+    }
+
+    // Then store the variables with their values
+    for (const variable of variables) {
+      for (const [modeId, value] of Object.entries(variable.valuesByMode)) {
+        const mode = collection.modes.find((m) => m.modeId === modeId);
+        if (!mode) continue;
+
+        const key = `${collection.name}/${mode.name}/${variable.name}`;
+        existingVars.set(key, {
+          id: variable.id,
+          value,
+          collection: collection.name,
+          mode: mode.name,
+          name: variable.name,
+          type: variable.resolvedType,
+          description: variable.description,
+          scopes: variable.scopes,
+        });
+      }
+    }
+  }
+
+  return existingVars;
+}
+
 export async function operate(
-  resolvedTokens: Record<string, SingleToken[]>,
+  resolvedTokens: Record<string, FlattenedNode[]>,
   themes: ThemeObject[],
 ): Promise<OperateResult> {
   const startTotalOperation = Date.now();
@@ -32,6 +111,9 @@ export async function operate(
   updatedTokens = {};
   localVariables.clear();
   variableIdToNameMap.clear();
+
+  // Get existing variables for comparison
+  const existingVars = await getExistingVariables();
 
   const sourceCollectionVariables = await getSourceCollectionVariables(
     themes as unknown as ThemeObject[],
@@ -65,49 +147,72 @@ export async function operate(
           })
         : [];
 
-      // IDEA:
-      // Instead of doing all theme options in the first run, just do the first theme mode.
-      // Then, in the second run, if its not a reference we set the value.
+      // First pass: Create non-alias tokens
       for (const option of theme.options) {
         const flatArrayOfTokensToCreate =
           resolvedTokens[`${theme.name}/${option.name}`] || [];
 
+        // Filter out tokens that haven't changed
+        const tokensToCreate = flatArrayOfTokensToCreate.filter((token) => {
+          const normalizedName = normalizeTokenNameForFigma(token.name);
+          const key = `${theme.name}/${option.name}/${normalizedName}`;
+          const existing = existingVars.get(key);
+
+          if (!existing) return true; // Create new token
+          return !compareValues(existing, token); // Create if value changed
+        });
+
         const modeToCreate = modes.find(
-          (m: VariableMode) => m.name === option.name,
+          (m: { modeId: string; name: string }) => m.name === option.name,
         );
         if (!modeToCreate) {
           console.warn(`Mode not found for ${option.name}`);
           continue;
         }
 
-        await createTokensForCollectionMode({
-          collection,
-          mode: modeToCreate,
-          tokens: flatArrayOfTokensToCreate,
-          shouldCreateAliases: false,
-          availableSourceVariables: availableSourceVariablesForTheme,
-        });
+        if (tokensToCreate.length > 0) {
+          await createTokensForCollectionMode({
+            collection,
+            mode: modeToCreate,
+            tokens: tokensToCreate,
+            shouldCreateAliases: false,
+            availableSourceVariables: availableSourceVariablesForTheme,
+          });
+        }
       }
 
+      // Second pass: Create alias tokens
       for (const option of theme.options) {
         const flatArrayOfTokensToCreate =
           resolvedTokens[`${theme.name}/${option.name}`] || [];
 
+        // Filter out tokens that haven't changed
+        const tokensToCreate = flatArrayOfTokensToCreate.filter((token) => {
+          const normalizedName = normalizeTokenNameForFigma(token.name);
+          const key = `${theme.name}/${option.name}/${normalizedName}`;
+          const existing = existingVars.get(key);
+
+          if (!existing) return true; // Create new token
+          return !compareValues(existing, token); // Create if value changed
+        });
+
         const modeToCreate = modes.find(
-          (m: VariableMode) => m.name === option.name,
+          (m: { modeId: string; name: string }) => m.name === option.name,
         );
         if (!modeToCreate) {
           console.warn(`Mode not found for ${option.name}`);
           continue;
         }
 
-        await createTokensForCollectionMode({
-          collection,
-          mode: modeToCreate,
-          tokens: flatArrayOfTokensToCreate,
-          shouldCreateAliases: true,
-          availableSourceVariables: availableSourceVariablesForTheme,
-        });
+        if (tokensToCreate.length > 0) {
+          await createTokensForCollectionMode({
+            collection,
+            mode: modeToCreate,
+            tokens: tokensToCreate,
+            shouldCreateAliases: true,
+            availableSourceVariables: availableSourceVariablesForTheme,
+          });
+        }
       }
     })();
   }

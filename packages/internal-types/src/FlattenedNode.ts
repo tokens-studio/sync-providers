@@ -1,6 +1,7 @@
 export interface FlattenedNode {
   name: string;
   value: string;
+  description?: string;
   type: string;
   attributes: {
     isUsingPureReference: boolean;

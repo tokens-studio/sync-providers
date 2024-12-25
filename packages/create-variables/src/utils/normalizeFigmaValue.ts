@@ -1,4 +1,4 @@
-import { normalizeFigmaColor } from "./normalizeFigmaColor";
+import { normalizeFigmaColor } from "./normalizeFigmaColor.js";
 
 export function normalizeFigmaValue(
   value: VariableValue,
@@ -14,6 +14,14 @@ export function normalizeFigmaValue(
       id: value.id,
     };
   }
+
+  const roundToSixDecimals = (num: number) =>
+    Math.round(num * 1000000) / 1000000;
+
+  if (!isNaN(Number(value))) {
+    return roundToSixDecimals(Number(value));
+  }
+
   // Figma returns colors with quite a few decimals, so we need to round them to a normalized value
   if (type === "COLOR") {
     return normalizeFigmaColor(
