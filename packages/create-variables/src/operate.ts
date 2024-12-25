@@ -18,12 +18,15 @@ interface CollectionWithModes {
 interface OperateResult {
   createdCount: number;
   updatedCount: number;
+  totalOperationTime: number;
 }
 
 export async function operate(
   resolvedTokens: Record<string, SingleToken[]>,
   themes: ThemeObject[],
 ): Promise<OperateResult> {
+  const startTotalOperation = Date.now();
+
   // Clear the tokens after operation
   createdTokens = {};
   updatedTokens = {};
@@ -109,8 +112,11 @@ export async function operate(
     })();
   }
 
+  const endTotalOperation = Date.now();
+
   return {
     createdCount: Object.keys(createdTokens).length,
     updatedCount: Object.keys(updatedTokens).length,
+    totalOperationTime: endTotalOperation - startTotalOperation,
   };
 }
