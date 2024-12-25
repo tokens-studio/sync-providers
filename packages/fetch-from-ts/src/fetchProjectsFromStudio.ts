@@ -20,8 +20,6 @@ export async function fetchProjectsFromStudio(
       query: ORGANIZATIONS_QUERY,
     });
 
-    console.log("Result", result);
-
     if (
       !result.data?.organizations ||
       !result.data?.organizations.data.length
