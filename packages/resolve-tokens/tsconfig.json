@@ -2,7 +2,11 @@
 	"extends": "@tokens-studio/configs/typescript",
 	"compilerOptions": {
 		"outDir": "dist",
-		"rootDir": "src"
+		"rootDir": "src",
+		"types": [
+			"@types",
+			"@figma/plugin-typings"
+		]
 	},
 	"include": ["src", "../internal-types/NewExperimentalThemeObject.ts"],
 	"exclude": ["node_modules", "dist"]

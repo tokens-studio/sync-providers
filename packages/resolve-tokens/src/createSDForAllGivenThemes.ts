@@ -10,48 +10,19 @@ import { parseFontShorthand } from "./parseFontShorthand.js";
 import { parseColor } from "./parseColor.js";
 import { TokenSetStatus } from "@tokens-studio/types";
 import { type SingleToken } from "@tokens-studio/types";
+import { isNumberWeight } from "./utils/isNumberWeight.js";
+import { sizePxToNumber } from "./transforms/sizePxToNumber.js";
+import { attributeIsPureReference } from "./transforms/attributeIsPureReference.js";
+import { attributeInvalidForFigmaVariableReason } from "./transforms/attributeInvalidForFigmaVariableReason.js";
+import { attributeFigmaTypeAndScope } from "./transforms/attributeFigmaTypeAndScope.js";
 
 register(StyleDictionary);
 
-// Register a new transform to convert units to pure numbers
-// Figma doesnt know units, just numbers. So we expect that they're 16px (but technically we should support a dynamic base font size via a token and resolving)
-StyleDictionary.registerTransform({
-  name: "size/pxToNumber",
-  type: "value",
-  transitive: true,
-  transform: (token) => {
-    const value = token.value;
-    if (typeof value === "string") {
-      if (value.endsWith("px")) {
-        return parseFloat(value);
-      } else if (value.endsWith("rem")) {
-        // Assuming 1rem = 16px
-        return parseFloat(value) * 16;
-      } else if (value.endsWith("em")) {
-        // Assuming 1em = 16px, same as rem
-        return parseFloat(value) * 16;
-      }
-    }
-    return value;
-  },
-});
-
-// Register a new transform to add isUsingPureReference property
-// We need this to understand if we can create an alias inside design tools (as Figma only supports pure reference links)
-StyleDictionary.registerTransform({
-  name: "attribute/isPureReference",
-  type: "attribute",
-  transform: (token) => {
-    if (typeof token.original.value === "string") {
-      const value = token.original.value.trim();
-      const isPureReference = /^{[^{}]+}$/.test(value);
-      return {
-        isUsingPureReference: isPureReference,
-      };
-    }
-    return {};
-  },
-});
+// Register all transforms
+StyleDictionary.registerTransform(sizePxToNumber);
+StyleDictionary.registerTransform(attributeIsPureReference);
+StyleDictionary.registerTransform(attributeInvalidForFigmaVariableReason);
+StyleDictionary.registerTransform(attributeFigmaTypeAndScope);
 
 export async function createSDForAllGivenThemes(
   tokenSets: Record<string, DesignTokens | SingleToken[]>,
@@ -81,6 +52,8 @@ export async function createSDForAllGivenThemes(
               "name/original",
               "size/pxToNumber",
               "attribute/isPureReference",
+              "attribute/invalidForFigmaVariableReason",
+              "attribute/figmaTypeAndScope",
             ],
             buildPath: "build/array/",
             files: [
@@ -93,6 +66,7 @@ export async function createSDForAllGivenThemes(
       });
 
       const formattedTokens = await sd.formatPlatform("array");
+      console.log("formattedTokens", formattedTokens);
       if (!formattedTokens || !formattedTokens.length) return acc;
       const output = formattedTokens[0]?.output as PreprocessedTokens[];
 
@@ -124,11 +98,17 @@ export async function createSDForAllGivenThemes(
         return acc;
       }
 
+      console.log("filteredOutput", filteredOutput);
+
       // We need to adjust the output value to what the platform expects.
       // This doesnt seem to work yet with transformers, so we perform this additional step here.
       // Ideally I wouldn't have this step and I could do it in the form of a transformer above.
       const transformedOutput = filteredOutput.map((token) => {
-        if (token.type === "color" && typeof token.value === "string") {
+        if (
+          token.type === "color" &&
+          typeof token.value === "string" &&
+          !token.value.startsWith("linear-gradient")
+        ) {
           const transformedColor = new Color(token.value)
             .to("srgb")
             .toString({ format: "hex" });
@@ -136,9 +116,24 @@ export async function createSDForAllGivenThemes(
           const parsedColor = parseColor(transformedColor);
           // token.value = transformedColor;
           token.value = parsedColor;
-        } else if (token.type === "typography") {
+        }
+        if (token.type === "typography") {
           const parsedFont = parseFontShorthand(token.value);
           token.value = parsedFont;
+        }
+        if (
+          token.attributes?.figmaType === "FLOAT" &&
+          typeof token.value === "string" &&
+          !token.value?.startsWith("{")
+        ) {
+          token.value = parseFloat(token.value);
+        }
+        if (token.type === "fontWeight") {
+          token.value = token.original?.value.startsWith("{")
+            ? token.original?.value
+            : isNumberWeight(token.original?.value)
+              ? parseFloat(token.original?.value)
+              : token.original?.value;
         }
         return token;
       });

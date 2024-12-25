@@ -1,32 +1,39 @@
-import { Graphql, ProjectQuery } from "@tokens-studio/sdk";
-import { fetchWithRetry } from "./utils/fetchWithRetry.js";
-import { PROJECTS_QUERY } from "./queries/PROJECTS_QUERY.js";
+import { create } from "@tokens-studio/sdk";
+import { ORGANIZATIONS_QUERY } from "./queries/ORGANIZATIONS_QUERY.js";
+import type {
+  Organization,
+  OrganizationsResponse,
+} from "./types/OrganizationsResponse.js";
 
-export async function fetchProjectsFromStudio() {
-  const data = await fetchWithRetry(() =>
-    Graphql.exec<ProjectQuery>(
-      Graphql.op(PROJECTS_QUERY, {
-        limit: 100,
-      }),
-    ),
-  );
+export async function fetchProjectsFromStudio(
+  apiKey: string,
+): Promise<Organization[]> {
+  try {
+    const client = create({
+      host: process.env.TOKENS_STUDIO_API_HOST || "graphql.app.tokens.studio",
+      secure: process.env.NODE_ENV !== "development",
+      auth: `Bearer ${apiKey}`,
+    });
 
-  if (data.errors) {
-    console.error("error", data.errors[0].path);
+    const result = await client.query<OrganizationsResponse>({
+      query: ORGANIZATIONS_QUERY,
+    });
+
+    if (result.errors?.length) {
+      console.error("GraphQL errors:", result.errors);
+      throw new Error(result.errors[0].message);
+    }
+
+    if (
+      !result.data?.organizations ||
+      !result.data?.organizations.data.length
+    ) {
+      throw new Error("No organizations found");
+    }
+
+    return result.data?.organizations.data ?? [];
+  } catch (error) {
+    console.error("Error fetching organizations:", error);
+    throw error;
   }
-
-  if (!data.data) {
-    console.error("No data found");
-    return [];
-  }
-
-  const projectsArray =
-    data.data?.organizations.flatMap((organization) =>
-      organization.projects.map((project) => ({
-        name: `${organization.name}/${project.name}`,
-        urn: project.urn,
-      })),
-    ) || [];
-
-  return projectsArray;
 }
