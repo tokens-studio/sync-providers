@@ -8,6 +8,7 @@ import type {
 export async function fetchProjectsFromStudio(
   apiKey: string,
 ): Promise<Organization[]> {
+  let result: any;
   try {
     const client = create({
       host: process.env.TOKENS_STUDIO_API_HOST || "graphql.app.tokens.studio",
@@ -15,14 +16,11 @@ export async function fetchProjectsFromStudio(
       auth: `Bearer ${apiKey}`,
     });
 
-    const result = await client.query<OrganizationsResponse>({
+    result = await client.query<OrganizationsResponse>({
       query: ORGANIZATIONS_QUERY,
     });
 
-    if (result.errors?.length) {
-      console.error("GraphQL errors:", result.errors);
-      throw new Error(result.errors[0].message);
-    }
+    console.log("Result", result);
 
     if (
       !result.data?.organizations ||
@@ -32,8 +30,36 @@ export async function fetchProjectsFromStudio(
     }
 
     return result.data?.organizations.data ?? [];
-  } catch (error) {
-    console.error("Error fetching organizations:", error);
-    throw error;
+  } catch (error: any) {
+    console.error("Error details:", error.message);
+
+    // Extract status code from error message if it exists
+    const statusCodeMatch = error.message?.match(/status code (\d{3})/i);
+    const statusCode = statusCodeMatch ? parseInt(statusCodeMatch[1]) : null;
+
+    if (statusCode) {
+      switch (statusCode) {
+        case 401:
+          throw new Error("Invalid API key");
+        case 429:
+          throw new Error("Too many requests: Rate limit exceeded");
+        case 500:
+          throw new Error("Internal server error: Please try again later");
+        default:
+          throw new Error(
+            `HTTP Error ${statusCode}: ${error.message || "Unknown error"}`,
+          );
+      }
+    }
+
+    // Handle GraphQL errors
+    if (error.response?.errors) {
+      console.error("GraphQL errors:", error.response.errors);
+      throw new Error(error.response.errors[0]?.message || "GraphQL Error");
+    }
+
+    // If it's a network or other type of error
+    const errorMessage = error.message || "Unknown error occurred";
+    throw new Error(`Failed to fetch organizations: ${errorMessage}`);
   }
 }
