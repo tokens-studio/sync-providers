@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"outDir": "dist",
 		"rootDir": "src",
-		"typeRoots": [
+		"types": [
 			"@types",
 			"../../node_modules/@figma/plugin-typings"
 		]
