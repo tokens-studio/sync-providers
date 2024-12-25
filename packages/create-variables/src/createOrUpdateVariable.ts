@@ -26,7 +26,7 @@ export async function createOrUpdateVariable({
 
   let variable = createdTokens[variableName] || localVariables.get(key);
 
-  if (variable) {
+  if (variable && variable.valuesByMode[modeId]) {
     const existingValue = normalizeFigmaValue(
       variable.valuesByMode[modeId],
       type,
@@ -40,15 +40,7 @@ export async function createOrUpdateVariable({
         variable.setValueForMode(modeId, newValue);
         variable.scopes = scopes;
       } catch (e) {
-        console.log(
-          "error setting value",
-          name,
-          modeId,
-          value,
-          variable,
-          newValue,
-        );
-        console.error(e);
+        console.error(name, e, variable, modeId, value, newValue);
       }
       updatedTokens[name] = variable;
     }
