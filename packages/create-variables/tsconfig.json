@@ -5,7 +5,7 @@
 		"rootDir": "src",
 		"types": [
 			"@types",
-			"@figma/plugin-typings"
+			"../../node_modules/@figma/plugin-typings"
 		]
 	},
 	"include": ["src", "../internal-types/src/NewExperimentalThemeObject.ts"],

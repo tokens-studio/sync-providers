@@ -1,5 +1,5 @@
 import type { NewExperimentalThemeObject } from "@repo/types/NewExperimentalThemeObject.js";
-import type { ThemeGroup } from "../types/ThemeGroup.js";
+import type { ThemeGroup } from "@tokens-studio/internal-types.js";
 
 export function formatThemeResponse(
   themeGroups: ThemeGroup[],

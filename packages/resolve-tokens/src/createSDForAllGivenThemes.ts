@@ -1,6 +1,6 @@
 import StyleDictionary from "style-dictionary";
 import { generateThemes } from "./generateThemes.js";
-import type { NewExperimentalThemeObject } from "../../internal-types/NewExperimentalThemeObject.js";
+import type { NewExperimentalThemeObject } from "@tokens-studio/internal-types";
 import type { DesignTokens, PreprocessedTokens } from "style-dictionary/types";
 import { convertArrayToNestedObject } from "./convertArrayToNestedObject.js";
 import { register } from "@tokens-studio/sd-transforms";
@@ -97,8 +97,6 @@ export async function createSDForAllGivenThemes(
       if (!filteredOutput.length) {
         return acc;
       }
-
-      console.log("filteredOutput", filteredOutput);
 
       // We need to adjust the output value to what the platform expects.
       // This doesnt seem to work yet with transformers, so we perform this additional step here.

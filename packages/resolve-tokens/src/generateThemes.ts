@@ -2,7 +2,7 @@ import { type DesignTokens } from "style-dictionary/types";
 import { type UsedTokenSetsMap } from "@tokens-studio/types";
 import { mergeTokenGroups } from "./mergeTokenGroups.js";
 import { convertAllSetsToCombinedObject } from "./convertAllSetsToCombinedObject.js";
-import { type NewExperimentalThemeObject } from "../../internal-types/NewExperimentalThemeObject.js";
+import { type NewExperimentalThemeObject } from "@tokens-studio/internal-types";
 import { type SingleToken } from "@tokens-studio/types";
 
 export async function generateThemes(
