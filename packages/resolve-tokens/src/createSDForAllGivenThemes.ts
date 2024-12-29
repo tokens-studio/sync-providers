@@ -66,7 +66,6 @@ export async function createSDForAllGivenThemes(
       });
 
       const formattedTokens = await sd.formatPlatform("array");
-      console.log("formattedTokens", formattedTokens);
       if (!formattedTokens || !formattedTokens.length) return acc;
       const output = formattedTokens[0]?.output as PreprocessedTokens[];
 

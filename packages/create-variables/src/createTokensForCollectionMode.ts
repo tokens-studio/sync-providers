@@ -66,9 +66,6 @@ export async function createTokensForCollectionMode({
         }
       }),
     );
-    console.log(
-      `Processed first pass batch ${Math.floor(i / BATCH_SIZE) + 1} of ${Math.ceil(tokens.length / BATCH_SIZE)}`,
-    );
     await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
   }
 
@@ -107,9 +104,6 @@ export async function createTokensForCollectionMode({
       const batch = batchOperations.slice(i, i + BATCH_SIZE);
       await Promise.all(
         batch.map((op) => createVariableAlias(op).then(() => {})),
-      );
-      console.log(
-        `Processed second pass batch ${Math.floor(i / BATCH_SIZE) + 1} of ${Math.ceil(batchOperations.length / BATCH_SIZE)}`,
       );
       await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
     }

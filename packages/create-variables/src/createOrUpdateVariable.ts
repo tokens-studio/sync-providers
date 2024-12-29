@@ -26,15 +26,16 @@ export async function createOrUpdateVariable({
 
   let variable = createdTokens[variableName] || localVariables.get(key);
 
-  if (variable && variable.valuesByMode[modeId]) {
-    const existingValue = normalizeFigmaValue(
-      variable.valuesByMode[modeId],
-      type,
-    );
+  if (variable) {
+    const existingValue = variable.valuesByMode[modeId]
+      ? normalizeFigmaValue(variable.valuesByMode[modeId], type)
+      : undefined;
     const newValue = normalizeFigmaValue(value, type);
     if (
-      JSON.stringify(existingValue) !== JSON.stringify(newValue) &&
-      !areReferenceNamesEqual(existingValue, rawValue)
+      !existingValue ||
+      (existingValue &&
+        JSON.stringify(existingValue) !== JSON.stringify(newValue) &&
+        !areReferenceNamesEqual(existingValue, rawValue))
     ) {
       try {
         variable.setValueForMode(modeId, newValue);
