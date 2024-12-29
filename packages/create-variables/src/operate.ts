@@ -3,11 +3,10 @@ import { getSourceCollectionVariables } from "./utils/getSourceCollectionVariabl
 import { createVariableCollectionWithModes } from "./createVariableCollectionWithModes.js";
 import { getLocalVariables } from "./utils/getLocalVariables.js";
 import { createTokensForCollectionMode } from "./createTokensForCollectionMode.js";
-import { normalizeFigmaValue } from "./utils/normalizeFigmaValue.js";
-import { areReferenceNamesEqual } from "./utils/areReferenceNamesEqual.js";
 import { normalizeTokenNameForFigma } from "./utils/normalizeTokenNameForFigma.js";
 import { getAliasName } from "./utils/getAliasName.js";
 import { normalizeTokenNameFromFigma } from "./utils/normalizeTokenNameFromFigma.js";
+import { compareValues } from "./compareValues.js";
 
 export let createdTokens: Record<string, Variable> = {};
 export let updatedTokens: Record<string, Variable> = {};
@@ -25,7 +24,7 @@ interface OperateResult {
   totalOperationTime: number;
 }
 
-interface ExistingVariable {
+export interface ExistingVariable {
   id: string;
   value: any;
   collection: string;
@@ -34,29 +33,6 @@ interface ExistingVariable {
   type: VariableResolvedDataType;
   description?: string;
   scopes: VariableScope[];
-}
-
-function compareValues(
-  existing: ExistingVariable,
-  newToken: FlattenedNode,
-): boolean {
-  const rawValue = newToken.original.value;
-  const type = newToken.original.type;
-  const normalizedExisting = normalizeFigmaValue(existing.value, type);
-  const normalizedNew = normalizeFigmaValue(rawValue, type);
-
-  if (rawValue && areReferenceNamesEqual(normalizedExisting, rawValue)) {
-    return true;
-  }
-
-  const isSame =
-    JSON.stringify(normalizedExisting) === JSON.stringify(normalizedNew) &&
-    existing.description === newToken.description &&
-    existing.scopes.every((scope) =>
-      newToken.attributes.figmaScopes?.includes(scope),
-    );
-
-  return isSame;
 }
 
 async function getExistingVariables(): Promise<Map<string, ExistingVariable>> {
