@@ -1,4 +1,3 @@
-import { areReferenceNamesEqual } from "./utils/areReferenceNamesEqual.js";
 import { localVariables, createdTokens, updatedTokens } from "./operate.js";
 import { createVariable } from "./createVariable.js";
 import { normalizeFigmaValue } from "./utils/normalizeFigmaValue.js";
@@ -10,16 +9,16 @@ export async function createOrUpdateVariable({
   type,
   name,
   value,
-  rawValue,
-  scopes = ["ALL_SCOPES"],
+  scopes,
+  description,
 }: {
   collection: VariableCollection;
   modeId: string;
   type: VariableResolvedDataType;
   name: string;
   value: any;
-  rawValue: string;
   scopes?: VariableScope[];
+  description?: string;
 }) {
   const variableName = normalizeTokenNameForFigma(name);
   const key = `${variableName}-${collection.id}`;
@@ -27,31 +26,31 @@ export async function createOrUpdateVariable({
   let variable = createdTokens[variableName] || localVariables.get(key);
 
   if (variable) {
-    const existingValue = variable.valuesByMode[modeId]
-      ? normalizeFigmaValue(variable.valuesByMode[modeId], type)
-      : undefined;
     const newValue = normalizeFigmaValue(value, type);
-    if (
-      !existingValue ||
-      (existingValue &&
-        JSON.stringify(existingValue) !== JSON.stringify(newValue) &&
-        !areReferenceNamesEqual(existingValue, rawValue))
-    ) {
-      try {
-        variable.setValueForMode(modeId, newValue);
-        variable.scopes = scopes;
-      } catch (e) {
-        console.error(name, e, variable, modeId, value, newValue);
+
+    try {
+      if (variable.scopes !== scopes) {
+        console.log("Setting scopes (update)", name, variable.scopes, scopes);
       }
-      updatedTokens[name] = variable;
+      variable.setValueForMode(modeId, newValue);
+      if (scopes) variable.scopes = scopes;
+    } catch (e) {
+      console.error(name, e, variable, modeId, value, newValue);
     }
+    updatedTokens[name] = variable;
   } else {
     try {
       variable = await createVariable({ name: variableName, collection, type });
       if (variable) {
         createdTokens[name] = variable;
         variable.setValueForMode(modeId, value);
-        variable.scopes = scopes;
+        if (variable.scopes !== scopes) {
+          console.log("Setting scopes (create)", name, variable.scopes, scopes);
+        }
+        if (scopes) variable.scopes = scopes;
+        if (description) {
+          variable.description = description;
+        }
       }
     } catch (e) {
       console.error(e);

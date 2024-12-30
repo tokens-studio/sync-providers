@@ -25,7 +25,6 @@ export async function createVariableAlias({
       type: "VARIABLE_ALIAS",
       id: `${token.id}`,
     },
-    rawValue: valueKey,
-    scopes: token.attributes?.figmaScopes,
+    description: token.description,
   });
 }

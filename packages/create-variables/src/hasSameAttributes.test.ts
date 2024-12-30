@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { compareValues } from "./compareValues.js";
+import { hasSameAttributes } from "./hasSameAttributes.js";
 import type { ExistingVariable } from "./operate.js";
 import { variableIdToNameMap } from "./operate.js";
-import type { FlattenedNode } from "../../internal-types/src/FlattenedNode.js";
+import type { FlattenedNode } from "@tokens-studio/internal-types";
 
-describe("compareValues", () => {
+describe("hasSameAttributes", () => {
   test("returns true when all values match", () => {
     const existing: ExistingVariable = {
       id: "123",
@@ -15,6 +15,9 @@ describe("compareValues", () => {
       description: "Primary color",
       collection: "tokens",
       mode: "default",
+      valuesByMode: {
+        default: { r: 1, g: 0, b: 0, a: 1 },
+      },
     };
 
     const newToken: FlattenedNode = {
@@ -33,7 +36,9 @@ describe("compareValues", () => {
       description: "Primary color",
     };
 
-    expect(compareValues(existing, newToken)).toBe(true);
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(true);
   });
 
   test("returns false when values don't match", () => {
@@ -46,6 +51,9 @@ describe("compareValues", () => {
       description: "Primary color",
       collection: "tokens",
       mode: "default",
+      valuesByMode: {
+        default: { r: 1, g: 0, b: 0, a: 1 },
+      },
     };
 
     const newToken: FlattenedNode = {
@@ -64,7 +72,9 @@ describe("compareValues", () => {
       description: "Primary color",
     };
 
-    expect(compareValues(existing, newToken)).toBe(false);
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(false);
   });
 
   test("returns false when scopes don't match", () => {
@@ -77,6 +87,9 @@ describe("compareValues", () => {
       description: "Primary color",
       collection: "tokens",
       mode: "default",
+      valuesByMode: {
+        default: { r: 1, g: 0, b: 0, a: 1 },
+      },
     };
 
     const newToken: FlattenedNode = {
@@ -95,7 +108,9 @@ describe("compareValues", () => {
       description: "Primary color",
     };
 
-    expect(compareValues(existing, newToken)).toBe(false);
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(false);
   });
 
   test("returns false when descriptions don't match", () => {
@@ -108,6 +123,9 @@ describe("compareValues", () => {
       description: "Primary color",
       collection: "tokens",
       mode: "default",
+      valuesByMode: {
+        default: { r: 1, g: 0, b: 0, a: 1 },
+      },
     };
 
     const newToken: FlattenedNode = {
@@ -126,7 +144,9 @@ describe("compareValues", () => {
       description: "Different description",
     };
 
-    expect(compareValues(existing, newToken)).toBe(false);
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(false);
   });
 
   test("handles reference values correctly", () => {
@@ -143,6 +163,9 @@ describe("compareValues", () => {
       description: "Primary color",
       collection: "tokens",
       mode: "default",
+      valuesByMode: {
+        default: { type: "VARIABLE_ALIAS", id: "123" },
+      },
     };
 
     const newToken: FlattenedNode = {
@@ -161,7 +184,9 @@ describe("compareValues", () => {
       description: "Primary color",
     };
 
-    expect(compareValues(existing, newToken)).toBe(true);
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(true);
   });
 
   test("handles non-color values", () => {
@@ -174,6 +199,9 @@ describe("compareValues", () => {
       description: "Small spacing",
       collection: "tokens",
       mode: "default",
+      valuesByMode: {
+        default: "8",
+      },
     };
 
     const newToken: FlattenedNode = {
@@ -192,6 +220,44 @@ describe("compareValues", () => {
       description: "Small spacing",
     };
 
-    expect(compareValues(existing, newToken)).toBe(true);
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(true);
+  });
+
+  test("normalizes floating point numbers with many decimals", () => {
+    const existing: ExistingVariable = {
+      id: "123",
+      name: "spacing/precise",
+      type: "FLOAT",
+      value: 11.000000001,
+      scopes: ["ALL_SCOPES"],
+      description: "Precise spacing",
+      collection: "tokens",
+      mode: "default",
+      valuesByMode: {
+        default: 11.000000001,
+      },
+    };
+
+    const newToken: FlattenedNode = {
+      name: "spacing/precise",
+      type: "number",
+      value: "11",
+      original: {
+        name: "spacing/precise",
+        value: "11",
+        type: "FLOAT",
+      },
+      attributes: {
+        figmaScopes: ["ALL_SCOPES"],
+        isUsingPureReference: false,
+      },
+      description: "Precise spacing",
+    };
+
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(true);
   });
 });

@@ -6,12 +6,40 @@ import { createTokensForCollectionMode } from "./createTokensForCollectionMode.j
 import { normalizeTokenNameForFigma } from "./utils/normalizeTokenNameForFigma.js";
 import { getAliasName } from "./utils/getAliasName.js";
 import { normalizeTokenNameFromFigma } from "./utils/normalizeTokenNameFromFigma.js";
-import { compareValues } from "./compareValues.js";
+import { hasSameAttributes } from "./hasSameAttributes.js";
 
 export let createdTokens: Record<string, Variable> = {};
 export let updatedTokens: Record<string, Variable> = {};
 export let localVariables: Map<string, Variable> = new Map();
 export const variableIdToNameMap: Map<string, string> = new Map();
+
+const filterTokensToCreate = (
+  tokens: FlattenedNode[],
+  themeKey: string,
+  modeToCreate: { modeId: string },
+  existingVars: Map<string, ExistingVariable>,
+) => {
+  return tokens.filter((token) => {
+    const normalizedName = normalizeTokenNameForFigma(token.name);
+    const key = `${themeKey}/${normalizedName}`;
+    const existing = existingVars.get(key);
+
+    if (
+      !existing ||
+      typeof existing.valuesByMode[modeToCreate.modeId] === "undefined"
+    )
+      return true; // Create or update token if we dont have a token or a value for this mode
+
+    const existingValue = existing.valuesByMode[
+      modeToCreate.modeId
+    ] as VariableValue;
+    return !hasSameAttributes({
+      existing,
+      newToken: token,
+      existingValue,
+    }); // Create if anything changed
+  });
+};
 
 interface CollectionWithModes {
   collection: VariableCollection;
@@ -27,6 +55,7 @@ interface OperateResult {
 export interface ExistingVariable {
   id: string;
   value: any;
+  valuesByMode: Record<string, VariableValue>;
   collection: string;
   mode: string;
   name: string;
@@ -62,6 +91,7 @@ async function getExistingVariables(): Promise<Map<string, ExistingVariable>> {
         existingVars.set(key, {
           id: variable.id,
           value,
+          valuesByMode: variable.valuesByMode,
           collection: collection.name,
           mode: mode.name,
           name: variable.name,
@@ -125,19 +155,6 @@ export async function operate(
 
       // First pass: Create non-alias tokens
       for (const option of theme.options) {
-        const flatArrayOfTokensToCreate =
-          resolvedTokens[`${theme.name}/${option.name}`] || [];
-
-        // Filter out tokens that haven't changed
-        const tokensToCreate = flatArrayOfTokensToCreate.filter((token) => {
-          const normalizedName = normalizeTokenNameForFigma(token.name);
-          const key = `${theme.name}/${option.name}/${normalizedName}`;
-          const existing = existingVars.get(key);
-
-          if (!existing) return true; // Create new token
-          return !compareValues(existing, token); // Create if value changed
-        });
-
         const modeToCreate = modes.find(
           (m: { modeId: string; name: string }) => m.name === option.name,
         );
@@ -145,6 +162,15 @@ export async function operate(
           console.warn(`Mode not found for ${option.name}`);
           continue;
         }
+
+        const flatArrayOfTokensToCreate =
+          resolvedTokens[`${theme.name}/${option.name}`] || [];
+        const tokensToCreate = filterTokensToCreate(
+          flatArrayOfTokensToCreate,
+          `${theme.name}/${option.name}`,
+          modeToCreate,
+          existingVars,
+        );
 
         if (tokensToCreate.length > 0) {
           await createTokensForCollectionMode({
@@ -159,19 +185,6 @@ export async function operate(
 
       // Second pass: Create alias tokens
       for (const option of theme.options) {
-        const flatArrayOfTokensToCreate =
-          resolvedTokens[`${theme.name}/${option.name}`] || [];
-
-        // Filter out tokens that haven't changed
-        const tokensToCreate = flatArrayOfTokensToCreate.filter((token) => {
-          const normalizedName = normalizeTokenNameForFigma(token.name);
-          const key = `${theme.name}/${option.name}/${normalizedName}`;
-          const existing = existingVars.get(key);
-
-          if (!existing) return true; // Create new token
-          return !compareValues(existing, token); // Create if value changed
-        });
-
         const modeToCreate = modes.find(
           (m: { modeId: string; name: string }) => m.name === option.name,
         );
@@ -179,6 +192,15 @@ export async function operate(
           console.warn(`Mode not found for ${option.name}`);
           continue;
         }
+
+        const flatArrayOfTokensToCreate =
+          resolvedTokens[`${theme.name}/${option.name}`] || [];
+        const tokensToCreate = filterTokensToCreate(
+          flatArrayOfTokensToCreate,
+          `${theme.name}/${option.name}`,
+          modeToCreate,
+          existingVars,
+        );
 
         if (tokensToCreate.length > 0) {
           await createTokensForCollectionMode({

@@ -1,8 +1,10 @@
 import { normalizeFigmaColor } from "./normalizeFigmaColor.js";
 
+const roundToSixDecimals = (num: number) => Math.round(num * 1000000) / 1000000;
+
 export function normalizeFigmaValue(
   value: VariableValue,
-  type: VariableResolvedDataType,
+  type?: VariableResolvedDataType,
 ): VariableValue {
   if (
     typeof value === "object" &&
@@ -21,5 +23,14 @@ export function normalizeFigmaValue(
       value as { r: number; g: number; b: number; a: number },
     );
   }
+
+  // Handle numeric values (FLOAT, etc)
+  if (
+    typeof value === "number" ||
+    (typeof value === "string" && !isNaN(Number(value)))
+  ) {
+    return roundToSixDecimals(Number(value));
+  }
+
   return value;
 }
