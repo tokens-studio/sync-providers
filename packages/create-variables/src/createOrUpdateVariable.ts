@@ -29,9 +29,6 @@ export async function createOrUpdateVariable({
     const newValue = normalizeFigmaValue(value, type);
 
     try {
-      if (variable.scopes !== scopes) {
-        console.log("Setting scopes (update)", name, variable.scopes, scopes);
-      }
       variable.setValueForMode(modeId, newValue);
       if (scopes) variable.scopes = scopes;
     } catch (e) {
@@ -44,9 +41,6 @@ export async function createOrUpdateVariable({
       if (variable) {
         createdTokens[name] = variable;
         variable.setValueForMode(modeId, value);
-        if (variable.scopes !== scopes) {
-          console.log("Setting scopes (create)", name, variable.scopes, scopes);
-        }
         if (scopes) variable.scopes = scopes;
         if (description) {
           variable.description = description;
