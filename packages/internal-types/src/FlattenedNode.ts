@@ -1,6 +1,7 @@
 export interface FlattenedNode {
   name: string;
-  value: string;
+  value: string | RGBA;
+  description?: string;
   type: string;
   attributes: {
     isUsingPureReference: boolean;

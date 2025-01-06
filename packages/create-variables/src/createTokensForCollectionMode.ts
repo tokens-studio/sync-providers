@@ -58,8 +58,8 @@ export async function createTokensForCollectionMode({
           type: node.attributes.figmaType,
           name: normalizeTokenNameForFigma(node.name),
           value: resolvedValue,
-          rawValue: getAliasName(nodeValue),
           scopes: node.attributes?.figmaScopes,
+          description: node.description,
         });
         if (updatedVariable) {
           possibleAliasTokens[node.name] = updatedVariable;
