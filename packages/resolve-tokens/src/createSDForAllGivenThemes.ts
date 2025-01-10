@@ -5,11 +5,10 @@ import type { DesignTokens, PreprocessedTokens } from "style-dictionary/types";
 import { convertArrayToNestedObject } from "./convertArrayToNestedObject.js";
 import { register } from "@tokens-studio/sd-transforms";
 import Color from "colorjs.io";
-import type { UsedTokenSetsMap } from "@tokens-studio/types";
+import type { AnyTokenSet, UsedTokenSetsMap } from "@tokens-studio/types";
 import { parseFontShorthand } from "./parseFontShorthand.js";
 import { parseColor } from "./parseColor.js";
 import { TokenSetStatus } from "@tokens-studio/types";
-import { type SingleToken } from "@tokens-studio/types";
 import { isNumberWeight } from "./utils/isNumberWeight.js";
 import { sizePxToNumber } from "./transforms/sizePxToNumber.js";
 import { attributeIsPureReference } from "./transforms/attributeIsPureReference.js";
@@ -25,7 +24,7 @@ StyleDictionary.registerTransform(attributeInvalidForFigmaVariableReason);
 StyleDictionary.registerTransform(attributeFigmaTypeAndScope);
 
 export async function createSDForAllGivenThemes(
-  tokenSets: Record<string, DesignTokens | SingleToken[]>,
+  tokenSets: AnyTokenSet,
   themes: NewExperimentalThemeObject[],
   overallConfig?: UsedTokenSetsMap,
 ): Promise<Record<string, PreprocessedTokens[]>> {

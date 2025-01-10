@@ -1,12 +1,12 @@
-import { DesignTokens } from "style-dictionary/types";
+import { type DesignTokens } from "style-dictionary/types";
 import {
-  TokenSetsCombined,
+  type TokenSetsCombined,
   convertSingleSetToArray,
 } from "./convertAllSetsToArray.js";
-import { type SingleToken } from "@tokens-studio/types";
+import { type AnyTokenSet } from "@tokens-studio/types";
 
 export async function convertAllSetsToCombinedObject(
-  tokenSets: Record<string, DesignTokens | SingleToken[]>,
+  tokenSets: AnyTokenSet,
 ): Promise<TokenSetsCombined> {
   const combinedTokenSets: TokenSetsCombined = {};
 
@@ -15,7 +15,9 @@ export async function convertAllSetsToCombinedObject(
       combinedTokenSets[key] = value;
       continue;
     }
-    combinedTokenSets[key] = await convertSingleSetToArray(value);
+    combinedTokenSets[key] = await convertSingleSetToArray(
+      value as unknown as DesignTokens, // type cast as SD expects `DesignTokens`
+    );
   }
 
   return combinedTokenSets;
