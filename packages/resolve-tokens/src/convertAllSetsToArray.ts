@@ -35,7 +35,6 @@ export async function convertSingleSetToArray(
   const isUsingDTCG = JSON.stringify(tokenTree).includes("$value");
   // handle case of empty token sets
   if (Object.keys(tokenTree).length === 0) {
-    console.log("returning empty array");
     return [];
   }
   const sd = new StyleDictionary({
