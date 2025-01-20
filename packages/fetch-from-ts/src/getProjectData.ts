@@ -26,7 +26,7 @@ export async function getProjectData(
       variables: {
         projectId: id,
         organization: orgId,
-        name: "master",
+        name: "main",
       },
     });
 
