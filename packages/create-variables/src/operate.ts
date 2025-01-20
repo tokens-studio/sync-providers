@@ -65,14 +65,16 @@ export interface ExistingVariable {
 }
 
 async function getExistingVariables(): Promise<Map<string, ExistingVariable>> {
-  const collections = await figma.variables.getLocalVariableCollections();
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
   const existingVars = new Map<string, ExistingVariable>();
 
   for (const collection of collections) {
-    console.log("Collection:", collection.name);
-    const variables = collection.variableIds
-      .map((id) => figma.variables.getVariableById(id))
-      .filter((v): v is Variable => v !== null);
+    const variablePromises = collection.variableIds.map((id) =>
+      figma.variables.getVariableByIdAsync(id),
+    );
+    const variables = (await Promise.all(variablePromises)).filter(
+      (v): v is Variable => v !== null,
+    );
 
     // First populate variableIdToNameMap
     for (const variable of variables) {
@@ -148,7 +150,9 @@ export async function operate(
             const figmaCollectionId = existingThemeGroup?.$figmaCollectionId;
             return figmaCollectionId &&
               sourceCollectionVariables[figmaCollectionId]
-              ? sourceCollectionVariables[figmaCollectionId]
+              ? sourceCollectionVariables[figmaCollectionId].filter(
+                  (v): v is Variable => v !== undefined,
+                )
               : [];
           })
         : [];
