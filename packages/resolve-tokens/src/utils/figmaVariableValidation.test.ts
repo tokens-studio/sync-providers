@@ -1,30 +1,44 @@
 import { describe, expect, it } from "vitest";
 import {
   isGradient,
+  isCssVariable,
   isMultiValueDimension,
+  isValidColor,
   getInvalidFigmaVariableReason,
 } from "./figmaVariableValidation.js";
 
 describe("figmaVariableValidation", () => {
   describe("isGradient", () => {
     it("should return true for linear gradient values", () => {
-      expect(isGradient("linear-gradient(to right, #000, #fff)")).toBe(true);
+      expect(isGradient("linear-gradient(red, blue)")).toBe(true);
     });
 
     it("should return false for non-gradient values", () => {
-      expect(isGradient("#000")).toBe(false);
-      expect(isGradient(123)).toBe(false);
-      expect(isGradient(null)).toBe(false);
-      expect(isGradient(undefined)).toBe(false);
+      expect(isGradient("red")).toBe(false);
+      expect(isGradient("#ff0000")).toBe(false);
+    });
+  });
+
+  describe("isCssVariable", () => {
+    it("should return true for CSS variable values", () => {
+      expect(isCssVariable("var(--color-primary)")).toBe(true);
+      expect(isCssVariable("var(--cds-default-ui-nav-action-visited)")).toBe(
+        true,
+      );
+    });
+
+    it("should return false for non-CSS variable values", () => {
+      expect(isCssVariable("red")).toBe(false);
+      expect(isCssVariable("#ff0000")).toBe(false);
     });
   });
 
   describe("isMultiValueDimension", () => {
-    it("should return true for dimension type with space-separated values", () => {
+    it("should return true for multi-value dimension tokens", () => {
       expect(isMultiValueDimension("dimension", "10px 20px")).toBe(true);
     });
 
-    it("should return false for single dimension values", () => {
+    it("should return false for single-value dimension tokens", () => {
       expect(isMultiValueDimension("dimension", "10px")).toBe(false);
     });
 
@@ -40,35 +54,48 @@ describe("figmaVariableValidation", () => {
   });
 
   describe("getInvalidFigmaVariableReason", () => {
-    it("should return reason for excluded types", () => {
-      expect(getInvalidFigmaVariableReason("typography", "inter")).toBe(
-        "Type 'typography' is not supported in Figma variables",
-      );
+    it("should return undefined for valid color values", () => {
+      expect(getInvalidFigmaVariableReason("color", "#ff0000")).toBeUndefined();
       expect(
-        getInvalidFigmaVariableReason("shadow", "imaginary shadow value"),
-      ).toBe("Type 'shadow' is not supported in Figma variables");
+        getInvalidFigmaVariableReason("color", "rgb(255, 0, 0)"),
+      ).toBeUndefined();
+      expect(
+        getInvalidFigmaVariableReason("color", "hsl(0, 100%, 50%)"),
+      ).toBeUndefined();
     });
 
-    it("should return reason for gradient values", () => {
+    it("should return error message for CSS variable color values", () => {
+      expect(
+        getInvalidFigmaVariableReason("color", "var(--color-primary)"),
+      ).toBe(
+        "CSS variable values are not supported for color tokens in Figma variables",
+      );
       expect(
         getInvalidFigmaVariableReason(
           "color",
-          "linear-gradient(to right, #000, #fff)",
+          "var(--cds-default-ui-nav-action-visited)",
         ),
-      ).toBe("Gradient values are not supported in Figma variables");
-    });
-
-    it("should return reason for multi-value dimensions", () => {
-      expect(getInvalidFigmaVariableReason("dimension", "10px 20px")).toBe(
-        "Multi-value dimension tokens are not supported in Figma variables",
+      ).toBe(
+        "CSS variable values are not supported for color tokens in Figma variables",
       );
     });
 
-    it("should return undefined for valid cases", () => {
-      expect(getInvalidFigmaVariableReason("color", "#000")).toBeUndefined();
+    it("should return error message for gradient values", () => {
       expect(
-        getInvalidFigmaVariableReason("dimension", "10px"),
-      ).toBeUndefined();
+        getInvalidFigmaVariableReason("color", "linear-gradient(red, blue)"),
+      ).toBe("Gradient values are not supported in Figma variables");
+    });
+
+    it("should return error message for excluded types", () => {
+      expect(getInvalidFigmaVariableReason("typography", "some value")).toBe(
+        "Type 'typography' is not supported in Figma variables",
+      );
+    });
+
+    it("should return error message for multi-value dimensions", () => {
+      expect(getInvalidFigmaVariableReason("dimension", "10px 20px")).toBe(
+        "Multi-value dimension tokens are not supported in Figma variables",
+      );
     });
   });
 });

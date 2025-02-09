@@ -11,6 +11,7 @@ import { parseColor } from "./parseColor.js";
 import { TokenSetStatus } from "@tokens-studio/types";
 import { isNumberWeight } from "./utils/isNumberWeight.js";
 import { sizePxToNumber } from "./transforms/sizePxToNumber.js";
+import { valueToHex } from "./transforms/valueToHex.js";
 import { attributeIsPureReference } from "./transforms/attributeIsPureReference.js";
 import { attributeInvalidForFigmaVariableReason } from "./transforms/attributeInvalidForFigmaVariableReason.js";
 import { attributeFigmaTypeAndScope } from "./transforms/attributeFigmaTypeAndScope.js";
@@ -19,6 +20,7 @@ register(StyleDictionary);
 
 // Register all transforms
 StyleDictionary.registerTransform(sizePxToNumber);
+StyleDictionary.registerTransform(valueToHex);
 StyleDictionary.registerTransform(attributeIsPureReference);
 StyleDictionary.registerTransform(attributeInvalidForFigmaVariableReason);
 StyleDictionary.registerTransform(attributeFigmaTypeAndScope);
@@ -50,6 +52,7 @@ export async function createSDForAllGivenThemes(
             transforms: [
               "name/original",
               "size/pxToNumber",
+              "color/valueToHex",
               "attribute/isPureReference",
               "attribute/invalidForFigmaVariableReason",
               "attribute/figmaTypeAndScope",
@@ -101,6 +104,7 @@ export async function createSDForAllGivenThemes(
       // Ideally I wouldn't have this step and I could do it in the form of a transformer above.
       const transformedOutput = filteredOutput.map((token) => {
         if (
+          !token.attributes?.invalidForFigmaVariableReason &&
           token.type === "color" &&
           typeof token.value === "string" &&
           !token.value.startsWith("linear-gradient")
@@ -108,7 +112,7 @@ export async function createSDForAllGivenThemes(
           const transformedColor = new Color(token.value)
             .to("srgb")
             .toString({ format: "hex" });
-          // TODO: Disable for Framer or find a different way to specify how the output format should look like
+
           const parsedColor = parseColor(transformedColor);
           // token.value = transformedColor;
           token.value = parsedColor;

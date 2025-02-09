@@ -8,7 +8,9 @@ export const attributeIsPureReference = {
   transform: (token: TransformedToken) => {
     if (typeof token.original.value === "string") {
       const value = token.original.value.trim();
-      const isPureReference = /^{[^{}]+}$/.test(value);
+      const isPureReference =
+        /^{[^{}]+}$/.test(value) &&
+        !token.$extensions?.["studio.tokens"]?.modify;
       return {
         isUsingPureReference: isPureReference,
       };

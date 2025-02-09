@@ -509,4 +509,57 @@ describe("createSDForAllGivenThemes", () => {
       false,
     );
   });
+
+  it("should mark invalid color values with appropriate attributes", async () => {
+    const invalidColorTokenSets: Record<string, DesignTokens> = {
+      base: {
+        color: {
+          invalid: { $value: "foo", $type: "color" },
+          valid: { $value: "#FF0000", $type: "color" },
+          referenceToInvalid: { $value: "{color.invalid}", $type: "color" },
+        },
+      },
+    };
+
+    const invalidColorThemes: NewExperimentalThemeObject[] = [
+      {
+        name: "InvalidColor",
+        id: "invalidColor",
+        options: [
+          {
+            name: "Default",
+            selectedTokenSets: { base: TokenSetStatus.ENABLED },
+          },
+        ],
+      },
+    ];
+
+    const result = await createSDForAllGivenThemes(
+      invalidColorTokenSets,
+      invalidColorThemes,
+    );
+
+    expect(result["InvalidColor/Default"]).toBeDefined();
+    expect(result["InvalidColor/Default"]).toHaveLength(3);
+
+    const invalidColor = result["InvalidColor/Default"].find(
+      (token) => token.name === "color.invalid",
+    );
+    const validColor = result["InvalidColor/Default"].find(
+      (token) => token.name === "color.valid",
+    );
+    const referenceToInvalid = result["InvalidColor/Default"].find(
+      (token) => token.name === "color.referenceToInvalid",
+    );
+
+    expect(invalidColor?.attributes?.invalidForFigmaVariableReason).toBe(
+      "Invalid color value",
+    );
+    expect(
+      validColor?.attributes?.invalidForFigmaVariableReason,
+    ).toBeUndefined();
+    expect(referenceToInvalid?.attributes?.invalidForFigmaVariableReason).toBe(
+      "Invalid color value",
+    );
+  });
 });

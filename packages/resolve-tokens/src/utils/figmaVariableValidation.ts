@@ -1,3 +1,5 @@
+import { parseColor } from "../parseColor.js";
+
 export const excludedTypes = [
   "composition",
   "shadow",
@@ -10,6 +12,10 @@ export const isGradient = (value: unknown): boolean => {
   return typeof value === "string" && value.startsWith("linear-gradient");
 };
 
+export const isCssVariable = (value: unknown): boolean => {
+  return typeof value === "string" && value.startsWith("var(");
+};
+
 export const isMultiValueDimension = (
   type: string,
   value: unknown,
@@ -17,6 +23,15 @@ export const isMultiValueDimension = (
   return (
     type === "dimension" && typeof value === "string" && value.includes(" ")
   );
+};
+
+export const isInvalidColorValue = (value: string) => {
+  try {
+    parseColor(value);
+    return false;
+  } catch (_e) {
+    return true;
+  }
 };
 
 export const getInvalidFigmaVariableReason = (
@@ -29,6 +44,18 @@ export const getInvalidFigmaVariableReason = (
 
   if (isGradient(value)) {
     return "Gradient values are not supported in Figma variables";
+  }
+
+  if (type === "color" && isCssVariable(value)) {
+    return "CSS variable values are not supported for color tokens in Figma variables";
+  }
+
+  if (
+    type === "color" &&
+    typeof value === "string" &&
+    isInvalidColorValue(value)
+  ) {
+    return "Invalid color value";
   }
 
   if (isMultiValueDimension(type, value)) {
