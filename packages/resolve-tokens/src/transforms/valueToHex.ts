@@ -9,12 +9,18 @@ export const valueToHex = {
   transitive: true,
   transform: (token: TransformedToken) => {
     if (token.type !== "color") return token.value;
-    let transformedColor = token.value;
+
     try {
-      transformedColor = new Color(token.value).toString({ format: "hex" });
-    } catch (e) {
-      console.warn(`Error parsing ${token.name} with value ${token.value}`);
+      const color = new Color(token.value);
+      // Convert to sRGB color space first, then to hex
+      const srgbColor = color.to("srgb");
+      return srgbColor.toString({ format: "hex" });
+    } catch (error) {
+      console.warn(
+        `Error parsing color token "${token.name}" with value "${token.value}":`,
+        error,
+      );
+      return token.value;
     }
-    return transformedColor;
-  },
+  }
 };
