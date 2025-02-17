@@ -37,15 +37,15 @@ export async function getProjectData(
     const tokenSets = data.data.project.branch.tokenSets.data as TokensSet[];
 
     const returnData = tokenSets.reduce(
-      (acc, tokenSet) => {
+      (
+        acc: {
+          tokens: AnyTokenSet;
+          tokenSets: Record<string, { isDynamic: boolean }>;
+        },
+        tokenSet,
+      ) => {
         if (!tokenSet.name) return acc;
-        acc.tokens[tokenSet.name] = tokenSet.tokens.map((tkn) => ({
-          name: tkn.name,
-          type: tkn.type,
-          description: tkn.description,
-          $extensions: tkn.extensions,
-          value: tkn.value,
-        }));
+        acc.tokens[tokenSet.name] = tokenSet.raw;
 
         acc.tokenSets[tokenSet.name] = {
           isDynamic: tokenSet.type === TokenSetType.Dynamic,
