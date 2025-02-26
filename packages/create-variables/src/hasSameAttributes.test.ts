@@ -260,4 +260,135 @@ describe("hasSameAttributes", () => {
       hasSameAttributes({ existing, newToken, existingValue: existing.value }),
     ).toBe(true);
   });
+
+  // New test cases for the updated functionality
+
+  test("returns false when changing from raw value to reference with same resolved value", () => {
+    // Set up the mock for variableIdToNameMap
+    variableIdToNameMap.clear();
+    variableIdToNameMap.set("456", "color.grey.50");
+
+    // Existing variable with raw color value
+    const existing: ExistingVariable = {
+      id: "123",
+      name: "semantic/neutral/50",
+      type: "COLOR",
+      value: { r: 0.909804, g: 0.909804, b: 0.909804, a: 1 }, // #E8E8E8
+      scopes: ["ALL_SCOPES"],
+      description: "Neutral color",
+      collection: "tokens",
+      mode: "default",
+      valuesByMode: {
+        default: { r: 0.909804, g: 0.909804, b: 0.909804, a: 1 },
+      },
+    };
+
+    // New token with reference to another variable that resolves to the same color
+    const newToken: FlattenedNode = {
+      name: "semantic/neutral/50",
+      type: "color",
+      value: { r: 0.909804, g: 0.909804, b: 0.909804, a: 1 }, // Same resolved value
+      original: {
+        name: "semantic/neutral/50",
+        value: "{color.grey.50}", // But now it's a reference
+        type: "COLOR",
+      },
+      attributes: {
+        figmaScopes: ["ALL_SCOPES"],
+        isUsingPureReference: true,
+      },
+      description: "Neutral color",
+    };
+
+    // Should return false because we're changing from raw value to reference
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(false);
+  });
+
+  test("returns false when changing from reference to raw value with same resolved value", () => {
+    // Set up the mock for variableIdToNameMap
+    variableIdToNameMap.clear();
+    variableIdToNameMap.set("456", "color.grey.50");
+
+    // Existing variable with reference
+    const existing: ExistingVariable = {
+      id: "123",
+      name: "semantic/neutral/50",
+      type: "COLOR",
+      value: { type: "VARIABLE_ALIAS", id: "456" },
+      scopes: ["ALL_SCOPES"],
+      description: "Neutral color",
+      collection: "tokens",
+      mode: "default",
+      valuesByMode: {
+        default: { type: "VARIABLE_ALIAS", id: "456" },
+      },
+    };
+
+    // New token with raw value that resolves to the same color
+    const newToken: FlattenedNode = {
+      name: "semantic/neutral/50",
+      type: "color",
+      value: { r: 0.909804, g: 0.909804, b: 0.909804, a: 1 }, // Same resolved value
+      original: {
+        name: "semantic/neutral/50",
+        value: "#E8E8E8", // But now it's a raw value
+        type: "COLOR",
+      },
+      attributes: {
+        figmaScopes: ["ALL_SCOPES"],
+        isUsingPureReference: false,
+      },
+      description: "Neutral color",
+    };
+
+    // Should return false because we're changing from reference to raw value
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(false);
+  });
+
+  test("returns false when changing from one reference to another reference", () => {
+    // Set up the mock for variableIdToNameMap
+    variableIdToNameMap.clear();
+    variableIdToNameMap.set("456", "color.grey.50");
+
+    // Existing variable with reference to color.grey.50
+    const existing: ExistingVariable = {
+      id: "123",
+      name: "semantic/neutral/50",
+      type: "COLOR",
+      value: { type: "VARIABLE_ALIAS", id: "456" },
+      scopes: ["ALL_SCOPES"],
+      description: "Neutral color",
+      collection: "tokens",
+      mode: "default",
+      valuesByMode: {
+        default: { type: "VARIABLE_ALIAS", id: "456" },
+      },
+    };
+
+    // New token with reference to a different variable
+    const newToken: FlattenedNode = {
+      name: "semantic/neutral/50",
+      type: "color",
+      value: { r: 0.909804, g: 0.909804, b: 0.909804, a: 1 }, // Same resolved value
+      original: {
+        name: "semantic/neutral/50",
+        value: "{color.base.grey.50}", // Different reference
+        type: "COLOR",
+      },
+      attributes: {
+        figmaScopes: ["ALL_SCOPES"],
+        isUsingPureReference: true,
+      },
+      description: "Neutral color",
+    };
+
+    // Should return false because we're changing to a different reference
+    expect(
+      hasSameAttributes({ existing, newToken, existingValue: existing.value }),
+    ).toBe(false);
+  });
 });

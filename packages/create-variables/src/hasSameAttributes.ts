@@ -4,6 +4,7 @@ import { areReferenceNamesEqual } from "./utils/areReferenceNamesEqual.js";
 import { getAliasName } from "./utils/getAliasName.js";
 import { normalizeFigmaColor } from "./utils/normalizeFigmaColor.js";
 import { normalizeFigmaValue } from "./utils/normalizeFigmaValue.js";
+import { usesReferences } from "./utils/usesReferences.js";
 
 export function hasSameAttributes({
   existing,
@@ -26,16 +27,34 @@ export function hasSameAttributes({
       ? normalizeFigmaColor(newToken.value)
       : normalizeFigmaValue(newToken.value);
 
-  isSameValue =
-    JSON.stringify(normalizedExisting) === JSON.stringify(normalizedNew);
+  // Check if the existing value is a reference
+  const isExistingReference =
+    typeof normalizedExisting === "object" &&
+    normalizedExisting !== null &&
+    "type" in normalizedExisting &&
+    normalizedExisting.type === "VARIABLE_ALIAS";
 
-  // Check if the new value is a reference to the existing value and if so, if the reference is the same token name
-  if (
-    rawValue &&
-    areReferenceNamesEqual(normalizedExisting, getAliasName(rawValue))
-  ) {
-    isSameValue = true;
+  // Check if the new value should be a reference
+  const shouldBeReference = usesReferences(rawValue);
+
+  // If one is a reference and the other isn't, they're not the same
+  // This ensures we update when changing from raw value to reference or vice versa
+  if (isExistingReference !== shouldBeReference) {
+    return false;
   }
+
+  // If both are references, check if they reference the same variable
+  if (isExistingReference && shouldBeReference) {
+    isSameValue = areReferenceNamesEqual(
+      normalizedExisting,
+      getAliasName(rawValue),
+    );
+  } else {
+    // If neither are references, compare the actual values
+    isSameValue =
+      JSON.stringify(normalizedExisting) === JSON.stringify(normalizedNew);
+  }
+
   // Check that scopes are the same
   isSameScopes = existing.scopes.every((scope) =>
     newToken.attributes.figmaScopes?.includes(scope),
