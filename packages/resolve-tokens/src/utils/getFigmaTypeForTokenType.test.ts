@@ -35,6 +35,7 @@ describe("getFigmaTypeForTokenType", () => {
     ["letterSpacing", "FLOAT"],
     ["paragraphSpacing", "FLOAT"],
     ["dimension", "FLOAT"],
+    ["number", "FLOAT"],
     ["fontFamily", "STRING"],
     ["fontWeight", "STRING"],
     ["textAlign", "STRING"],

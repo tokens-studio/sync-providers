@@ -24,12 +24,14 @@ export function getFigmaTypeForTokenType(
     case "letterspacing":
     case "paragraphspacing":
     case "dimension":
+    case "number":
       return "FLOAT";
     case "fontfamily":
     case "fontweight":
     case "textalign":
     case "textdecoration":
     case "texttransform":
+    case "text":
       return "STRING";
     case "boolean":
       return "BOOLEAN";
