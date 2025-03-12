@@ -32,10 +32,18 @@ export function getFigmaScopeForTokenType(token: DesignToken): VariableScope[] {
     case "fontfamilies":
       return ["FONT_FAMILY"];
     case "fontweight":
-    case "fontweights":
-      return isNumberWeight(token.original?.value)
-        ? ["FONT_WEIGHT"]
-        : ["FONT_STYLE"];
+    case "fontweights": {
+      // Check both original value and resolved value for references
+      const originalValue = token.original?.value;
+      const resolvedValue = token.value;
+      
+      // If it's a reference (starts with { and ends with })
+      if (typeof originalValue === 'string' && originalValue.startsWith('{') && originalValue.endsWith('}')) {
+        return isNumberWeight(resolvedValue) ? ["FONT_WEIGHT"] : ["FONT_STYLE"];
+      }
+      
+      return isNumberWeight(originalValue) ? ["FONT_WEIGHT"] : ["FONT_STYLE"];
+    }
     case "text":
       return ["TEXT_CONTENT"];
     default:

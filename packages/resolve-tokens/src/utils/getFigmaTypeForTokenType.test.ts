@@ -24,6 +24,16 @@ describe("getFigmaTypeForTokenType", () => {
     expect(getFigmaTypeForTokenType(stringToken)).toBe("STRING");
   });
 
+  test("handles referenced font weights correctly", () => {
+    const referencedToken: DesignToken = {
+      type: "fontWeight",
+      original: { value: "{fontweight.default}" },
+      value: "700", // resolved value
+    } as DesignToken;
+
+    expect(getFigmaTypeForTokenType(referencedToken)).toBe("FLOAT");
+  });
+
   test.each([
     ["color", "COLOR"],
     ["borderRadius", "FLOAT"],
