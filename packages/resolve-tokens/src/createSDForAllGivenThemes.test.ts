@@ -562,4 +562,51 @@ describe("createSDForAllGivenThemes", () => {
       "Invalid color value",
     );
   });
+
+  it("should handle font family names with spaces correctly", async () => {
+    const fontFamilyTokenSets: Record<string, DesignTokens> = {
+      typography: {
+        family: {
+          simple: { $value: "Arial", $type: "fontFamily" },
+          withSpace: { $value: "Fredoka One", $type: "fontFamily" },
+          withQuotes: { $value: "'Helvetica Neue'", $type: "fontFamily" },
+        },
+      },
+    };
+
+    const fontFamilyThemes: NewExperimentalThemeObject[] = [
+      {
+        name: "Typography",
+        id: "typography",
+        options: [
+          {
+            name: "Default",
+            selectedTokenSets: { typography: TokenSetStatus.ENABLED },
+          },
+        ],
+      },
+    ];
+
+    const result = await createSDForAllGivenThemes(
+      fontFamilyTokenSets,
+      fontFamilyThemes,
+    );
+
+    expect(result["Typography/Default"]).toBeDefined();
+    expect(result["Typography/Default"]).toHaveLength(3);
+
+    const simpleFamily = result["Typography/Default"].find(
+      (token) => token.name === "family.simple",
+    );
+    const withSpaceFamily = result["Typography/Default"].find(
+      (token) => token.name === "family.withSpace",
+    );
+    const withQuotesFamily = result["Typography/Default"].find(
+      (token) => token.name === "family.withQuotes",
+    );
+
+    expect(simpleFamily?.value).toBe("Arial");
+    expect(withSpaceFamily?.value).toBe("Fredoka One");
+    expect(withQuotesFamily?.value).toBe("Helvetica Neue");
+  });
 });

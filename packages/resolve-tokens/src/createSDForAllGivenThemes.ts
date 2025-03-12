@@ -15,6 +15,7 @@ import { valueToHex } from "./transforms/valueToHex.js";
 import { attributeIsPureReference } from "./transforms/attributeIsPureReference.js";
 import { attributeInvalidForFigmaVariableReason } from "./transforms/attributeInvalidForFigmaVariableReason.js";
 import { attributeFigmaTypeAndScope } from "./transforms/attributeFigmaTypeAndScope.js";
+import { fontfamilyOriginal } from "./transforms/fontfamilyOriginal.js";
 
 register(StyleDictionary);
 
@@ -24,6 +25,7 @@ StyleDictionary.registerTransform(valueToHex);
 StyleDictionary.registerTransform(attributeIsPureReference);
 StyleDictionary.registerTransform(attributeInvalidForFigmaVariableReason);
 StyleDictionary.registerTransform(attributeFigmaTypeAndScope);
+StyleDictionary.registerTransform(fontfamilyOriginal);
 
 export async function createSDForAllGivenThemes(
   tokenSets: AnyTokenSet,
@@ -56,6 +58,7 @@ export async function createSDForAllGivenThemes(
               "attribute/isPureReference",
               "attribute/invalidForFigmaVariableReason",
               "attribute/figmaTypeAndScope",
+              "fontfamily/original"
             ],
             buildPath: "build/array/",
             files: [
