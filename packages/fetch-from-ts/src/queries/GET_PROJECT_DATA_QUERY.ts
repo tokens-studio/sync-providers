@@ -6,6 +6,7 @@ export const GET_PROJECT_DATA_QUERY = gql`
       branch(name: $name) {
         themeGroups {
           data {
+            id
             name
             options {
               name
