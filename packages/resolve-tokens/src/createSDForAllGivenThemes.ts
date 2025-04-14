@@ -58,7 +58,7 @@ export async function createSDForAllGivenThemes(
               "attribute/isPureReference",
               "attribute/invalidForFigmaVariableReason",
               "attribute/figmaTypeAndScope",
-              "fontfamily/original"
+              "fontfamily/original",
             ],
             buildPath: "build/array/",
             files: [

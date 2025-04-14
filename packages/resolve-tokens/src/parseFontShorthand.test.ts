@@ -7,7 +7,7 @@ describe("parseFontShorthand", () => {
     expect(result).toEqual({
       fontWeight: 700,
       fontSize: "16px",
-      fontFamily: "Arial"
+      fontFamily: "Arial",
     });
   });
 
@@ -15,7 +15,7 @@ describe("parseFontShorthand", () => {
     const result = parseFontShorthand("16px Arial");
     expect(result).toEqual({
       fontSize: "16px",
-      fontFamily: "Arial"
+      fontFamily: "Arial",
     });
   });
 
@@ -25,7 +25,7 @@ describe("parseFontShorthand", () => {
       fontWeight: 400,
       fontSize: "16px",
       lineHeight: "1.5px",
-      fontFamily: "Arial"
+      fontFamily: "Arial",
     });
   });
 
@@ -34,7 +34,7 @@ describe("parseFontShorthand", () => {
     expect(result).toEqual({
       fontWeight: 400,
       fontSize: "16px",
-      fontFamily: "Helvetica Neue"
+      fontFamily: "Helvetica Neue",
     });
   });
 
@@ -43,14 +43,14 @@ describe("parseFontShorthand", () => {
     expect(result).toEqual({
       fontWeight: 400,
       fontSize: "16px",
-      fontFamily: "Helvetica Neue"
+      fontFamily: "Helvetica Neue",
     });
 
     const resultDoubleQuotes = parseFontShorthand('400 16px "Helvetica Neue"');
     expect(resultDoubleQuotes).toEqual({
       fontWeight: 400,
       fontSize: "16px",
-      fontFamily: "Helvetica Neue"
+      fontFamily: "Helvetica Neue",
     });
   });
 
@@ -59,7 +59,7 @@ describe("parseFontShorthand", () => {
     expect(result).toEqual({
       fontWeight: 400,
       fontSize: "16px",
-      fontFamily: "Arial"
+      fontFamily: "Arial",
     });
   });
 
@@ -68,7 +68,7 @@ describe("parseFontShorthand", () => {
     expect(result).toEqual({
       fontWeight: 400,
       fontSize: "1.5rem",
-      fontFamily: "Helvetica"
+      fontFamily: "Helvetica",
     });
   });
 
@@ -78,7 +78,7 @@ describe("parseFontShorthand", () => {
       fontWeight: 400,
       fontSize: "16px",
       lineHeight: "1.5rem",
-      fontFamily: "Arial"
+      fontFamily: "Arial",
     });
   });
 
@@ -87,7 +87,7 @@ describe("parseFontShorthand", () => {
     expect(result).toEqual({
       fontWeight: 400,
       fontSize: "16px",
-      fontFamily: "Arial"
+      fontFamily: "Arial",
     });
   });
 
@@ -96,7 +96,7 @@ describe("parseFontShorthand", () => {
     expect(result).toEqual({
       fontWeight: 400,
       fontSize: "16px",
-      fontFamily: "Helvetica 55 Roman"
+      fontFamily: "Helvetica 55 Roman",
     });
   });
 });

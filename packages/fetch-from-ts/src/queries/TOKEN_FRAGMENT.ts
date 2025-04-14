@@ -1,4 +1,3 @@
-
 export const TOKEN_FRAGMENT = `
     description
     name

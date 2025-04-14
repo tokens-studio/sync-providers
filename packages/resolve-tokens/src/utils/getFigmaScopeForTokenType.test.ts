@@ -73,33 +73,33 @@ describe("getFigmaScopeForTokenType", () => {
     expect(getFigmaScopeForTokenType(token)).toEqual(["ALL_SCOPES"]);
   });
 
-  test('handles numeric font weight references correctly', () => {
+  test("handles numeric font weight references correctly", () => {
     const token = {
-      type: 'fontWeight',
-      original: { value: '{fontweight.default}' },
-      value: '700'
+      type: "fontWeight",
+      original: { value: "{fontweight.default}" },
+      value: "700",
     } as DesignToken;
-    
-    expect(getFigmaScopeForTokenType(token)).toEqual(['FONT_WEIGHT']);
+
+    expect(getFigmaScopeForTokenType(token)).toEqual(["FONT_WEIGHT"]);
   });
 
-  test('handles direct numeric font weights correctly', () => {
+  test("handles direct numeric font weights correctly", () => {
     const token = {
-      type: 'fontWeight',
-      original: { value: '700' },
-      value: '700'
+      type: "fontWeight",
+      original: { value: "700" },
+      value: "700",
     } as DesignToken;
-    
-    expect(getFigmaScopeForTokenType(token)).toEqual(['FONT_WEIGHT']);
+
+    expect(getFigmaScopeForTokenType(token)).toEqual(["FONT_WEIGHT"]);
   });
 
-  test('handles named font weights correctly', () => {
+  test("handles named font weights correctly", () => {
     const token = {
-      type: 'fontWeight',
-      original: { value: 'Bold' },
-      value: 'Bold'
+      type: "fontWeight",
+      original: { value: "Bold" },
+      value: "Bold",
     } as DesignToken;
-    
-    expect(getFigmaScopeForTokenType(token)).toEqual(['FONT_STYLE']);
+
+    expect(getFigmaScopeForTokenType(token)).toEqual(["FONT_STYLE"]);
   });
 });

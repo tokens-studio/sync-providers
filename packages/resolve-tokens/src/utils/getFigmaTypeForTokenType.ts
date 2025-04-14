@@ -10,7 +10,10 @@ export function getFigmaTypeForTokenType(
   // Special case for font weight
   if (token.type === "fontWeight") {
     // Check if it's a reference
-    if (token.original?.value?.startsWith("{") && token.original?.value?.endsWith("}")) {
+    if (
+      token.original?.value?.startsWith("{") &&
+      token.original?.value?.endsWith("}")
+    ) {
       // For references, check the resolved value instead
       return isNumberWeight(token.value) ? "FLOAT" : "STRING";
     }

@@ -9,6 +9,7 @@ export async function fetchWithRetry<T>(
     return await fn();
   } catch (error) {
     if (retries > 0) {
+      // eslint-disable-next-line no-console
       console.log(`Retrying... Attempts left: ${retries}`);
       await delay(delayMs);
       return fetchWithRetry(fn, retries - 1, delayMs);

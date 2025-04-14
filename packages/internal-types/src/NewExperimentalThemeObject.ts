@@ -1,9 +1,9 @@
-import { UsedTokenSetsMap } from "@tokens-studio/types";
+import { type UsedTokenSetsMap } from "@tokens-studio/types";
 
 export type NewExperimentalThemeOption = {
   name: string;
   selectedTokenSets: UsedTokenSetsMap;
-}
+};
 
 export type NewExperimentalThemeObject = {
   id: string;

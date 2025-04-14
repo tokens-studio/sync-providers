@@ -1,4 +1,4 @@
-import { UsedTokenSetsMap, TokenSetStatus } from '@tokens-studio/types';
+import { UsedTokenSetsMap, TokenSetStatus } from "@tokens-studio/types";
 
 // Helper function to sort token sets based on their status in the configuration. Basically, ENABLED and SOURCE sets are treated equally and come before DISABLED.
 export function sortSets(a: string, b: string, config: UsedTokenSetsMap) {
@@ -10,8 +10,16 @@ export function sortSets(a: string, b: string, config: UsedTokenSetsMap) {
   if (statusA === statusB) return 0;
 
   // DISABLED sets should come before ENABLED and SOURCE, which are treated equally
-  if (statusA === TokenSetStatus.DISABLED && (statusB === TokenSetStatus.ENABLED || statusB === TokenSetStatus.SOURCE)) return -1;
-  if ((statusA === TokenSetStatus.ENABLED || statusA === TokenSetStatus.SOURCE) && statusB === TokenSetStatus.DISABLED) return 1;
+  if (
+    statusA === TokenSetStatus.DISABLED &&
+    (statusB === TokenSetStatus.ENABLED || statusB === TokenSetStatus.SOURCE)
+  )
+    return -1;
+  if (
+    (statusA === TokenSetStatus.ENABLED || statusA === TokenSetStatus.SOURCE) &&
+    statusB === TokenSetStatus.DISABLED
+  )
+    return 1;
 
   // If we reach here, it means both are ENABLED or SOURCE, or both are DISABLED
   return 0;
