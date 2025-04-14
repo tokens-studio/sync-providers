@@ -8,7 +8,6 @@ import type {
 export async function fetchProjectsFromStudio(
   apiKey: string,
 ): Promise<Organization[]> {
-  let result: any;
   try {
     const client = create({
       host: process.env.TOKENS_STUDIO_API_HOST || "graphql.app.tokens.studio",
@@ -16,18 +15,16 @@ export async function fetchProjectsFromStudio(
       auth: `Bearer ${apiKey}`,
     });
 
-    result = await client.query<OrganizationsResponse>({
+    const result = await client.query<OrganizationsResponse>({
       query: ORGANIZATIONS_QUERY,
     });
 
-    if (
-      !result.data?.organizations ||
-      !result.data?.organizations.data.length
-    ) {
+    if (!result.data?.organizations?.data?.length) {
       throw new Error("No organizations found");
     }
 
     return result.data?.organizations.data ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error details:", error.message);
 

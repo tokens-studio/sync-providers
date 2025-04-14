@@ -308,7 +308,7 @@ export class GitHubStorage extends GitStorage {
 										name,
 										data: fileContent.data,
 									};
-								} catch (e) {
+								} catch {
 									throw new Error(`Error parsing JSON for ${filePath}`);
 								}
 							}

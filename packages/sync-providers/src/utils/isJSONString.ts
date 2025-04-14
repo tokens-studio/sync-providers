@@ -1,7 +1,7 @@
 export default function IsJSONString(str: string) {
 	try {
 		JSON.parse(str);
-	} catch (e) {
+	} catch {
 		return false;
 	}
 	return true;

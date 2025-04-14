@@ -1,5 +1,4 @@
 import { expect, test, vi, beforeEach, afterEach } from 'vitest';
-import { Octokit } from '@octokit/rest';
 import { GitHubStorage } from './GitHubStorage.js';
 import { commitMultipleFiles } from './utils/commitMultipleFiles.js';
 import {

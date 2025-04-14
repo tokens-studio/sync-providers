@@ -1,4 +1,3 @@
-import { joinPath } from './utils/joinPath.js';
 import type { StorageInterface } from './SyncProvider.js';
 
 export type GitStorageSaveOptions = {

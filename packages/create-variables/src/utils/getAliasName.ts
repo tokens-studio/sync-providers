@@ -1,3 +1,3 @@
 export function getAliasName(value: string) {
-  return value.trim().replace(/[\{\}]/g, "");
+  return value.trim().replace(/[{}]/g, "");
 }

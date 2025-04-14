@@ -1,7 +1,7 @@
 import StyleDictionary from "style-dictionary";
 import { generateThemes } from "./generateThemes.js";
 import type { NewExperimentalThemeObject } from "@tokens-studio/internal-types";
-import type { DesignTokens, PreprocessedTokens } from "style-dictionary/types";
+import type { PreprocessedTokens } from "style-dictionary/types";
 import { convertArrayToNestedObject } from "./convertArrayToNestedObject.js";
 import { register } from "@tokens-studio/sd-transforms";
 import Color from "colorjs.io";

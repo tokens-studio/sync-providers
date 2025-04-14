@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import { StorageProviderType, SyncProvider } from './SyncProvider.js';
 import dotenv from 'dotenv';
 

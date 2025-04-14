@@ -3,7 +3,6 @@ import {
   isGradient,
   isCssVariable,
   isMultiValueDimension,
-  isValidColor,
   getInvalidFigmaVariableReason,
 } from "./figmaVariableValidation.js";
 
