@@ -24,9 +24,10 @@ export async function fetchProjectsFromStudio(
     }
 
     return result.data?.organizations.data ?? [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error("Error details:", error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error details:", error.message);
+    }
 
     // Extract status code from error message if it exists
     const statusCodeMatch = error.message?.match(/status code (\d{3})/i);
