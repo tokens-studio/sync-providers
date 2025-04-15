@@ -1,4 +1,4 @@
-import { GET_TOKEN_SET_PAGE } from "./queries/GET_PROJECT_DATA_QUERY.js";
+import { GET_TOKEN_SET_PAGE } from "./queries/GET_TOKEN_SET_PAGE.js";
 import {
   create,
   TokenSetType,
