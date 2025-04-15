@@ -22,6 +22,7 @@ export async function getAllTokenSets(
 ): Promise<TokenData | null> {
   try {
     //We attempt to get the initial page
+    // @TODO jorenbroekema reuse type-safe paginated response util once it's published in @tokens-studio/utils
     const data = await client.query({
       query: GET_TOKEN_SET_PAGE,
       variables: {
