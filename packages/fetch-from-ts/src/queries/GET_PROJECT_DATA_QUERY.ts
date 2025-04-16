@@ -4,21 +4,12 @@ export const GET_PROJECT_DATA_QUERY = gql`
   query Branch($projectId: String!, $organization: String!, $name: String) {
     project(id: $projectId, organization: $organization) {
       branch(name: $name) {
-        tokenSets(limit: 100) {
-          data {
-            name
-            orderIndex
-            type
-            raw
-          }
-        }
         themeGroups {
           data {
+            id
             name
             options {
               name
-              figmaStyleReferences
-              figmaVariableReferences
               selectedTokenSets
             }
           }
@@ -27,3 +18,4 @@ export const GET_PROJECT_DATA_QUERY = gql`
     }
   }
 `;
+

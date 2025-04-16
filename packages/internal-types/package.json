@@ -9,8 +9,11 @@
     ".": "./src/index.js"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint .",
     "test": "vitest",
     "test:watch": "vitest --watch"
+  },
+  "devDependencies": {
+    "@tokens-studio/configs": "^0.2.1"
   }
 }

@@ -8,28 +8,26 @@ import type {
 export async function fetchProjectsFromStudio(
   apiKey: string,
 ): Promise<Organization[]> {
-  let result: any;
   try {
     const client = create({
-      host: process.env.TOKENS_STUDIO_API_HOST || "graphql.app.tokens.studio",
+      host: process.env.TOKENS_STUDIO_API_HOST ?? "graphql.app.tokens.studio",
       secure: process.env.NODE_ENV !== "development",
       auth: `Bearer ${apiKey}`,
     });
 
-    result = await client.query<OrganizationsResponse>({
+    const result = await client.query<OrganizationsResponse>({
       query: ORGANIZATIONS_QUERY,
     });
 
-    if (
-      !result.data?.organizations ||
-      !result.data?.organizations.data.length
-    ) {
+    if (!result.data?.organizations?.data?.length) {
       throw new Error("No organizations found");
     }
 
     return result.data?.organizations.data ?? [];
-  } catch (error: any) {
-    console.error("Error details:", error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error details:", error.message);
+    }
 
     // Extract status code from error message if it exists
     const statusCodeMatch = error.message?.match(/status code (\d{3})/i);
