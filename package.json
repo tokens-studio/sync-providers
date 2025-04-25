@@ -1,5 +1,5 @@
 {
-  "name": "tokens-studio-consumers",
+  "name": "tokens-studio-sync-providers",
   "private": true,
   "scripts": {
     "build": "turbo run build",
