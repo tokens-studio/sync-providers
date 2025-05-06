@@ -24,38 +24,41 @@ export async function fetchProjectsFromStudio(
     }
 
     return result.data?.organizations.data ?? [];
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("Error details:", error.message);
-    }
 
-    // Extract status code from error message if it exists
-    const statusCodeMatch = error.message?.match(/status code (\d{3})/i);
-    const statusCode = statusCodeMatch ? parseInt(statusCodeMatch[1]) : null;
+      // Extract status code from error message if it exists
+      const statusCodeMatch = error.message?.match(/status code (\d{3})/i);
+      const statusCode = statusCodeMatch ? parseInt(statusCodeMatch[1]) : null;
 
-    if (statusCode) {
-      switch (statusCode) {
-        case 401:
-          throw new Error("Invalid API key");
-        case 429:
-          throw new Error("Too many requests: Rate limit exceeded");
-        case 500:
-          throw new Error("Internal server error: Please try again later");
-        default:
-          throw new Error(
-            `HTTP Error ${statusCode}: ${error.message || "Unknown error"}`,
-          );
+      if (statusCode) {
+        switch (statusCode) {
+          case 401:
+            throw new Error("Invalid API key");
+          case 429:
+            throw new Error("Too many requests: Rate limit exceeded");
+          case 500:
+            throw new Error("Internal server error: Please try again later");
+          default:
+            throw new Error(
+              `HTTP Error ${statusCode}: ${error.message || "Unknown error"}`,
+            );
+        }
       }
+
+      // Handle GraphQL errors
+      if ('response' in error && typeof error.response === 'object' && error.response && 'errors' in error.response) {
+        const gqlError = error.response.errors;
+        console.error("GraphQL errors:", gqlError);
+        throw new Error(Array.isArray(gqlError) && gqlError[0]?.message || "GraphQL Error");
+      }
+
+      // If it's a network or other type of error
+      throw new Error(`Failed to fetch organizations: ${error.message}`);
     }
 
-    // Handle GraphQL errors
-    if (error.response?.errors) {
-      console.error("GraphQL errors:", error.response.errors);
-      throw new Error(error.response.errors[0]?.message || "GraphQL Error");
-    }
-
-    // If it's a network or other type of error
-    const errorMessage = error.message || "Unknown error occurred";
-    throw new Error(`Failed to fetch organizations: ${errorMessage}`);
+    // For completely unknown errors
+    throw new Error("An unknown error occurred while fetching organizations");
   }
 }
