@@ -10,7 +10,7 @@ export async function fetchProjectsFromStudio(
 ): Promise<Organization[]> {
   try {
     const client = create({
-      host: process.env.TOKENS_STUDIO_API_HOST ?? "graphql.app.tokens.studio",
+      host: process.env.TOKENS_STUDIO_API_HOST || "graphql.app.tokens.studio",
       secure: process.env.NODE_ENV !== "development",
       auth: `Bearer ${apiKey}`,
     });
