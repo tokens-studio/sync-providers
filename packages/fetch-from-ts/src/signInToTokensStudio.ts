@@ -1,7 +1,12 @@
-import { Configuration, UserAuth } from "@tokens-studio/sdk";
+import { create } from "@tokens-studio/sdk";
 
 export async function signInToTokensStudio(username: string, password: string) {
-  Configuration.configure();
-
-  await UserAuth.signIn(username, password);
+  const client = create({
+    auth: {
+      username,
+      password
+    }
+  });
+  
+  return client;
 }
