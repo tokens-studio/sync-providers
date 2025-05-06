@@ -2,13 +2,37 @@
   "name": "@tokens-studio/fetch-from-ts",
   "version": "0.0.0",
   "type": "module",
-  "private": true,
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tokens-studio/tokens-studio-sync-providers.git"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest",
     "test:watch": "vitest --watch"
   },
   "devDependencies": {
+    "tsup": "^8.0.2",
     "@tokens-studio/configs": "^0.2.1",
     "@turbo/gen": "^1.12.4",
     "@types/node": "^20.11.24",
