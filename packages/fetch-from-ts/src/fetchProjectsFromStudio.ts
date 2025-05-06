@@ -30,7 +30,9 @@ export async function fetchProjectsFromStudio(
 
       // Extract status code from error message if it exists
       const statusCodeMatch = error.message?.match(/status code (\d{3})/i);
-      const statusCode = statusCodeMatch ? parseInt(statusCodeMatch[1]) : null;
+      const statusCode = statusCodeMatch
+        ? parseInt(statusCodeMatch[1] || "")
+        : null;
 
       if (statusCode) {
         switch (statusCode) {
@@ -48,10 +50,17 @@ export async function fetchProjectsFromStudio(
       }
 
       // Handle GraphQL errors
-      if ('response' in error && typeof error.response === 'object' && error.response && 'errors' in error.response) {
+      if (
+        "response" in error &&
+        typeof error.response === "object" &&
+        error.response &&
+        "errors" in error.response
+      ) {
         const gqlError = error.response.errors;
         console.error("GraphQL errors:", gqlError);
-        throw new Error(Array.isArray(gqlError) && gqlError[0]?.message || "GraphQL Error");
+        throw new Error(
+          (Array.isArray(gqlError) && gqlError[0]?.message) || "GraphQL Error",
+        );
       }
 
       // If it's a network or other type of error
