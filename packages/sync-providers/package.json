@@ -2,7 +2,15 @@
   "name": "@tokens-studio/sync-providers",
   "version": "0.0.0",
   "type": "module",
-  "private": true,
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tokens-studio/tokens-studio-sync-providers.git"
+  },
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "exports": {
