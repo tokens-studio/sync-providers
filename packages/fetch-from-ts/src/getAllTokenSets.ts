@@ -21,7 +21,7 @@ export async function getAllTokenSets(
   client: ReturnType<typeof create>,
 ): Promise<TokenData | null> {
   try {
-    //We attempt to get the initial page
+    // We attempt to get the initial page
     // @TODO jorenbroekema reuse type-safe paginated response util once it's published in @tokens-studio/utils
     const data = await client.query({
       query: GET_TOKEN_SET_PAGE,
@@ -47,7 +47,7 @@ export async function getAllTokenSets(
       (_, i) => i + 2,
     );
 
-    //Make a request in paralel here based on the amount of pages
+    // Make a request in paralel here based on the amount of pages
     const remainingPages = await Promise.all(
       pageIndices.map(async (page) => {
         const data = await client.query({
@@ -63,7 +63,7 @@ export async function getAllTokenSets(
       }),
     );
 
-    //Combine the data from all pages
+    // Combine the data from all pages
     const tokenSets = [...page1Data, ...remainingPages.flat()];
 
     const returnData = tokenSets.reduce(
