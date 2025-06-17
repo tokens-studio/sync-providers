@@ -19,7 +19,7 @@
     "prettier": "^3.3.3",
     "set-value": "^4.1.0",
     "typescript": "^5.3.3",
-    "vitest": "^2.1.2"
+    "vitest": "^2.1.9"
   },
   "dependencies": {
     "@tokens-studio/sdk": "^2.0.0-alpha.0"
